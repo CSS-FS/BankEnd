@@ -100,7 +100,7 @@ Route::get('device/{serial}/appliances', [DeviceApplianceController::class, 'fet
 Route::get('device/{serial}/appliance-ids', [DeviceApplianceController::class, 'fetchDeviceApplianceIds']);
 
 // Daily reports
-Route::get('production/report/headers/{id}', [ProductionLogController::class, 'dailyReportHeaders'])->name('productions.report.headers');
+Route::get('production/report/headers/{shedIid}/{flockId}', [ProductionLogController::class, 'dailyReportHeaders'])->name('productions.report.headers');
 Route::get('production/report/dates/{id}', [ProductionLogController::class, 'productionDatesByFlock'])->name('productions.report.dates');
 Route::get('production/report/history', [ProductionLogController::class, 'history'])->name('productions.report.history');
 Route::get('production/report/latest', [ProductionLogController::class, 'latestHistory'])->name('productions.report.latest');

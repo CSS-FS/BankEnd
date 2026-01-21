@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
             ChartSeeder::class,
             ProductionLogSeeder::class,
             WeightLogSeeder::class,
-            ExpenseSeeder::class,
+            // ExpenseSeeder::class,
             PricingSeeder::class,
             CapabilitySeeder::class,
             ConnectivitySeeder::class,
