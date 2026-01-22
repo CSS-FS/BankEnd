@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\FarmController;
 use App\Http\Controllers\Web\FarmExpenseController;
 use App\Http\Controllers\Web\FeedController;
 use App\Http\Controllers\Web\FlockController;
+use App\Http\Controllers\Web\InventoryController;
 use App\Http\Controllers\Web\IotController;
 use App\Http\Controllers\Web\LogsController;
 use App\Http\Controllers\Web\MapController;
@@ -29,6 +30,7 @@ use App\Http\Controllers\Web\ShortcutController;
 use App\Http\Controllers\Web\WebSettingController;
 use App\Models\Flock;
 use App\Models\Shed;
+use App\Services\ShedAnalyticsService;
 use Illuminate\Support\Facades\Route;
 
 // Frontend Routes
@@ -59,6 +61,10 @@ Route::get('/pricing', function () {
 Route::get('/about', function () {
     return view('frontend.about');
 })->name('about');
+
+Route::get('/terms-privacy', function () {
+    return view('frontend.terms_privacy');
+})->name('privacy');
 
 Route::post('/newsletter/subscribe', [NewsletterSubscriberController::class, 'store'])
     ->name('newsletter.subscribe');
@@ -116,6 +122,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/user-shortcuts', [ShortcutController::class, 'getUserShortcuts']);
     Route::get('/my-shortcuts', [ShortcutController::class, 'getUserPersonalizedShortcuts']);
     Route::get('/shortcuts/{group}', [ShortcutController::class, 'getShortcutsByGroup']);
+
+    Route::get('/dashboard-stats/{shedId}', function ($shedId) {
+        $shedService = new ShedAnalyticsService($shedId);
+        return response()->json($shedService->ShedOverview());
+    });
 });
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin']], function () {
@@ -355,6 +366,10 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin|owner|ma
         Route::delete('/{farmExpense}', 'destroy')->name('farm.expenses.destroy');
         Route::get('/sheds-by-farm/{farm}', 'getShedsByFarm')->name('farm.expenses.sheds-by-farm');
         Route::get('/flocks-by-shed/{shed}', 'getFlocksByShed')->name('farm.expenses.flocks-by-shed');
+    });
+
+    Route::prefix('inventory')->controller(InventoryController::class)->group(function () {
+        Route::get('/', 'index')->name('inventory.index');
     });
 
     // Reports

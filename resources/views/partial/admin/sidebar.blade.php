@@ -315,8 +315,8 @@
                                     <i class="ti ti-file-stack fs-16 me-2"></i><span>Farm Expenses</span>
                                 </a>
                             </li>
-                            <li>
-                                <a href="#">
+                            <li class="{{ request()->routeIs('inventory.*') ? 'active' : '' }}">
+                                <a href="{{ route('inventory.index') }}">
                                     <i class="ti ti-stack-3 fs-16 me-2"></i><span>Feed Inventory</span>
                                 </a>
                             </li>

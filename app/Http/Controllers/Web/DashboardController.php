@@ -72,58 +72,15 @@ class DashboardController extends Controller
                 ]
             );
         } elseif ($user->hasRole('manager')) {
-            $farm = $user->managedFarms()
+            $farms = $user->managedFarms()
                 ->with('sheds.latestFlock')
-                ->first();
-
-            if (! $farm) {
-                return view('dashboards.flocksense', [
-                    'user' => $user,
-                    'farm' => null,
-                    'flocks' => [],
-                    'data' => null,
-                    'datasets' => [],
-                    'adgData' => [],
-                    'shedEnvironment' => [],
-                    'environmentAlerts' => [],
-                    'iotChartData' => [],
-                ]);
-            }
-
-            $filters['farm_id'] = $farm->id;
-            $flocks = $farm->sheds->pluck('latestFlock')->toArray();
-
-            foreach ($flocks as $flock) {
-                if ($flock == null) {
-                    continue;
-                }
-                $filters['start_date'] = Carbon::parse($flock['start_date'])->format('Y-m-d');
-                $filters['end_date'] = Carbon::parse($flock['end_date'])->format('Y-m-d');
-            }
-
-            $data = $this->managerAnalyticsService->getAnalyticsData($filters)[0];
-            $mortality_data = $this->managerAnalyticsService->getMortalityRateData($filters);
-            $adgData = $this->managerAnalyticsService->adgData($filters);
-            $shedEnvironment = $this->managerAnalyticsService->shedEnvironmentData($filters);
-            $environmentAlerts = $this->managerAnalyticsService->environmentAlerts($filters);
-
-            $shedId = $farm->sheds->first()->id ?? 1;
-            $end_date = Carbon::now()->format('Y-m-d');
-            $start_date = Carbon::now()->subDays(7)->format('Y-m-d');
-            $iotChartData = $this->managerAnalyticsService->getIotChartData($shedId, 0, $start_date, $end_date);
+                ->get();
 
             return view(
                 'dashboards.flocksense',
                 [
                     'user' => $user,
-                    'farm' => $farm,
-                    'flocks' => $flocks,
-                    'data' => $data,
-                    'datasets' => $mortality_data,
-                    'adgData' => $adgData,
-                    'shedEnvironment' => $shedEnvironment,
-                    'environmentAlerts' => $environmentAlerts,
-                    'iotChartData' => $iotChartData,
+                    'farms' => $farms,
                 ]
             );
         }

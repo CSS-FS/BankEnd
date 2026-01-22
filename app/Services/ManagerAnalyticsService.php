@@ -579,4 +579,6 @@ class ManagerAnalyticsService
 
         return DB::select($sql);
     }
+
+
 }

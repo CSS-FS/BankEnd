@@ -235,8 +235,16 @@
                 </ul>
                 <div class="ms-3" style="min-width: 200px;">
                     <select class="form-select" id="target-shed">
-                        <option value="1">Shed 1</option>
-                        <option value="2">Shed 2</option>
+                        @foreach($farms as $farm)
+                            <optgroup label="{{ $farm->name }}">
+                            @foreach($farm->sheds as $shed)
+                                <option value="{{ $shed->id }}" data-capacity="{{ $shed->capacity }}" data-flock="{{ $shed->latestFlock->name }}">
+                                    {{ $shed->name }}
+                                </option>
+                            @endforeach
+                            </optgroup>
+                        @endforeach
+
                     </select>
                 </div>
             </div>
@@ -245,15 +253,17 @@
                 {{-- Executive Overview Tab --}}
                 <div class="tab-pane fade show active" id="executive" role="tabpanel">
                     {{-- Alert Banner --}}
+                    @foreach([] as $alert)
                     <div class="alert alert-danger custom-alert-icon shadow-sm d-flex align-items-center justify-content-between">
-                        <div class="text-danger">
-                            <i class="feather-alert-triangle flex-shrink-0 me-2"></i>
-                            <span><strong>Critical Alert:</strong> NH3 levels in House 2 exceeding safe threshold (28 ppm)</span>
+                            <div class="text-danger">
+                                <i class="feather-alert-triangle flex-shrink-0 me-2"></i>
+                                <span><strong>Critical Alert:</strong> NH3 levels in House 2 exceeding safe threshold (28 ppm)</span>
+                            </div>
+                            <button type="button" class="btn btn-danger-light" onclick="alert('Clicked...');">
+                                Mark Action
+                            </button>
                         </div>
-                        <button type="button" class="btn btn-danger-light" onclick="alert('Clicked...');">
-                            Mark Action
-                        </button>
-                    </div>
+                    @endforeach
 
                     {{-- KPI Cards --}}
                     <div class="row g-3 mb-4">
@@ -261,27 +271,27 @@
                             <div class="card border-0 w-100">
                                 <div class="kpi-card-fs">
                                     <div class="kpi-label-fs">Current Flock Size</div>
-                                    <div class="kpi-value-fs">24,850</div>
-                                    <div class="kpi-change-fs">Day 21 of 42</div>
+                                    <div class="kpi-value-fs" id="current-flock-size">0</div>
+                                    <div class="kpi-change-fs" id="current-flock-age">Day 0</div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-xl-2 col-lg-4 col-md-6">
                             <div class="card border-0 w-100">
-                            <div class="kpi-card-fs">
-                                <div class="kpi-label-fs">Mortality Rate</div>
-                                <div class="kpi-value-fs">3.2%</div>
-                                <div class="kpi-change-fs negative">↑ 0.3% from yesterday</div>
-                            </div>
+                                <div class="kpi-card-fs">
+                                    <div class="kpi-label-fs">Mortality Rate</div>
+                                    <div class="kpi-value-fs" id="mortality-rate">0.0%</div>
+                                    <div class="kpi-change-fs negative" id="mortality-diff">↑ 0.0% from yesterday</div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-xl-2 col-lg-4 col-md-6">
                             <div class="card border-0 w-100">
                             <div class="kpi-card-fs">
                                 <div class="kpi-label-fs">Feed Conversion Ratio</div>
-                                <div class="kpi-value-fs">1.68</div>
-                                <div class="kpi-change-fs positive">↓ 0.02 improvement</div>
+                                <div class="kpi-value-fs" id="fcr">0.0</div>
+                                <div class="kpi-change-fs" id="fcr-diff">↓ 0.0 improvement</div>
                             </div>
                             </div>
                         </div>
@@ -289,8 +299,8 @@
                             <div class="card border-0 w-100">
                             <div class="kpi-card-fs">
                                 <div class="kpi-label-fs">PEF Score</div>
-                                <div class="kpi-value-fs">312</div>
-                                <div class="kpi-change-fs positive">↑ 8 points from last cycle</div>
+                                <div class="kpi-value-fs" id="pef-score">0</div>
+                                <div class="kpi-change-fs" id="pef-ratio">↑ 8 points from last cycle</div>
                             </div>
                             </div>
                         </div>
@@ -298,8 +308,8 @@
                             <div class="card border-0 w-100">
                             <div class="kpi-card-fs">
                                 <div class="kpi-label-fs">Avg Daily Gain</div>
-                                <div class="kpi-value-fs">58.2g</div>
-                                <div class="kpi-change-fs positive">On target</div>
+                                <div class="kpi-value-fs" id="adg">0.0g</div>
+                                <div class="kpi-change-fs" id="adg-diff">On target</div>
                             </div>
                             </div>
                         </div>
@@ -307,14 +317,14 @@
                             <div class="card border-0 w-100">
                             <div class="kpi-card-fs">
                                 <div class="kpi-label-fs">Uniformity (CV%)</div>
-                                <div class="kpi-value-fs">8.4%</div>
-                                <div class="kpi-change-fs positive">Excellent</div>
+                                <div class="kpi-value-fs" id="cv">0.0%</div>
+                                <div class="kpi-change-fs" id="cv-desc">Excellent</div>
                             </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Charts Row 1 --}}
+                    {{-- Charts Growth and Consumption --}}
                     <div class="row g-3 mb-4">
                         <div class="col-xl-6">
                             <div class="card">
@@ -347,7 +357,9 @@
                         <div class="col-xl-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5 class="card-title mb-0">FCR Trend <span class="badge badge-soft-info float-end">Target: 1.65</span></h5>
+                                    <h5 class="card-title mb-0">
+                                        FCR Trend <span class="badge badge-soft-info float-end" id="target-fcr">Target: 0.0</span>
+                                    </h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="chart-wrapper-fs">
@@ -716,26 +728,27 @@
 
 @push('js')
 <script src="{{ asset('assets/plugins/chartjs/chart.min.js') }}"></script>
+
 <script>
 // Initialize Executive Charts
-function initExecutiveCharts() {
+function initExecutiveCharts(growth, consumption, fcr, costs) {
     // Growth Performance Chart
     const growthCtx = document.getElementById('growthChart');
     if (growthCtx) {
         new Chart(growthCtx.getContext('2d'), {
             type: 'line',
             data: {
-                labels: ['Day 1', 'Day 7', 'Day 14', 'Day 21', 'Day 28', 'Day 35', 'Day 42'],
+                labels: growth.labels,
                 datasets: [{
                     label: 'Actual Weight',
-                    data: [42, 185, 465, 920, 1450, 2050, 2450],
+                    data: growth.actual_weights,
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
                     tension: 0.4,
                     fill: true
                 }, {
                     label: 'Target Weight',
-                    data: [42, 180, 450, 900, 1400, 2000, 2400],
+                    data: growth.target_weights,
                     borderColor: '#4caf50',
                     borderDash: [5, 5],
                     tension: 0.4,
@@ -761,14 +774,14 @@ function initExecutiveCharts() {
         new Chart(consumptionCtx.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: consumption.labels,
                 datasets: [{
                     label: 'Feed (kg)',
-                    data: [450, 460, 470, 465, 480, 485, 490],
+                    data: consumption.feed_consumed,
                     backgroundColor: '#ffa726'
                 }, {
                     label: 'Water (L)',
-                    data: [820, 835, 850, 845, 870, 880, 890],
+                    data: consumption.water_consumed,
                     backgroundColor: '#42a5f5'
                 }]
             },
@@ -786,17 +799,17 @@ function initExecutiveCharts() {
         new Chart(fcrCtx.getContext('2d'), {
             type: 'line',
             data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+                labels: fcr.labels,
                 datasets: [{
                     label: 'FCR',
-                    data: [1.45, 1.52, 1.68, 1.72, 1.78, 1.82],
+                    data: fcr.actual_fcr,
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
                     tension: 0.4,
                     fill: true
                 }, {
                     label: 'Target',
-                    data: [1.40, 1.50, 1.65, 1.70, 1.75, 1.80],
+                    data: fcr.target_fcr,
                     borderColor: '#4caf50',
                     borderDash: [5, 5],
                     fill: false
@@ -806,7 +819,7 @@ function initExecutiveCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { beginAtZero: false, min: 1.3, max: 2.0 }
+                    y: { beginAtZero: true }
                 }
             }
         });
@@ -814,23 +827,74 @@ function initExecutiveCharts() {
 
     // Cost Chart
     const costCtx = document.getElementById('costChart');
+
+    function generateColors(count) {
+        return Array.from({ length: count }, (_, i) => {
+            const hue = Math.round((360 * i) / Math.max(count, 1));
+            return `hsl(${hue}, 70%, 55%)`;
+        });
+    }
+
+    function formatPKR(value) {
+        const num = Number(value ?? 0);
+        return `PKR ${num.toLocaleString('en-PK', { maximumFractionDigits: 1 })}`;
+    }
+
     if (costCtx) {
+        const labels = costs.labels || [];
+        const data = (costs.data || []).map(v => Number(v) || 0);
+
         new Chart(costCtx.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['Feed', 'Energy', 'Labor', 'Medication', 'Other'],
+                labels,
                 datasets: [{
-                    data: [65, 15, 10, 5, 5],
-                    backgroundColor: ['#667eea', '#ffa726', '#66bb6a', '#ef5350', '#b0bec5']
+                    data,
+                    backgroundColor: generateColors(data.length),
+                    borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'right' } }
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            generateLabels(chart) {
+                                const ds = chart.data.datasets[0] || {};
+                                const chartLabels = chart.data.labels || [];
+                                const colors = ds.backgroundColor || [];
+                                const values = ds.data || [];
+
+                                return chartLabels.map((lbl, i) => ({
+                                    text: `${lbl} (${formatPKR(values[i])})`,
+                                    fillStyle: colors[i] || '#ccc',
+                                    strokeStyle: colors[i] || '#ccc',
+                                    lineWidth: 1,
+
+                                    // keep toggle working
+                                    hidden: chart.getDataVisibility ? !chart.getDataVisibility(i) : false,
+                                    index: i,
+                                    datasetIndex: 0
+                                }));
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const label = ctx.label ?? '';
+                                const value = ctx.parsed ?? 0;
+                                return `${label}: ${formatPKR(value)}`;
+                            }
+                        }
+                    }
+                }
             }
         });
     }
+
 }
 
 // Initialize Environmental Charts
@@ -1165,7 +1229,51 @@ function initOperationalCharts() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    initExecutiveCharts();
+    const shedId = document.querySelector('#target-shed').value;
+    $.get('/dashboard-stats/' + shedId, function(data) {
+        document.querySelector('#current-flock-size').innerHTML = data.currentFlockSize;
+        document.querySelector('#current-flock-age').innerHTML = `Day ${data.currentFlockAge}<span class="badge bg-soft-success text-dark float-end">${data.startFlockSize}</span>`;
+        document.querySelector('#mortality-rate').innerHTML = `${data.cumulativeMortalityRate}%`;
+        document.querySelector('#mortality-diff').innerHTML = `↑ ${data.dailyMortalityRate}% from yesterday`;
+        document.querySelector('#fcr').innerHTML = `${data.feedConversionRatio}`;
+
+        const fcrDiff = document.querySelector('#fcr-diff');
+        if(data.fcrDiff > 0) {
+            fcrDiff.innerHTML = `↓ ${data.fcrDiff}% improvement`;
+            fcrDiff.classList.add('positive');
+            fcrDiff.classList.remove('negative');
+        } else {
+            fcrDiff.innerHTML = `↑ ${Math.abs(data.fcrDiff)}% worsening`;
+            fcrDiff.classList.add('negative');
+            fcrDiff.classList.remove('positive');
+        }
+
+        document.querySelector('#target-fcr').innerHTML = `Target: ${data.targetFCR}`;
+
+        document.querySelector('#pef-score').innerHTML = `${data.pefScore}`;
+
+        const pefRatio = document.querySelector('#pef-ratio');
+        if(data.pefRatio > 0) {
+            pefRatio.innerHTML = `↑ ${data.pefRatio} above to standard`;
+            pefRatio.classList.add('positive');
+            pefRatio.classList.remove('negative');
+        } else {
+            pefRatio.innerHTML = `↓ ${Math.abs(data.pefRatio)} below to standard`;
+            pefRatio.classList.add('negative');
+            pefRatio.classList.remove('positive');
+        }
+
+        document.querySelector('#adg').innerHTML = `${data.avgDailyGain}g`;
+        document.querySelector('#adg-diff').innerHTML = `${data.targetDG}g Targeted`;
+
+        document.querySelector('#cv').innerHTML = `${data.cv}%`;
+        document.querySelector('#cv-desc').innerHTML = `${data.cvDesc}`;
+
+        console.log(data);
+        initExecutiveCharts(data.growthPerformance, data.feedWaterConsumption, data.fcrComparison, data.currentFlockExpenses);
+    });
+
+
 });
 
 // Re-initialize charts on tab change

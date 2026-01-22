@@ -81,7 +81,10 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="accepted" id="consent" required>
                                     <label class="form-check-label" for="consent">
-                                        I agree to the terms & privacy policy
+                                        I agree to the
+                                        <a href="{{ route('privacy') }}" class="link-warning">
+                                            Terms & Privacy Policy
+                                        </a>
                                     </label>
                                 </div>
                             </div>
