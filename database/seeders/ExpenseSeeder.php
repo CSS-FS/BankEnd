@@ -81,6 +81,6 @@ class ExpenseSeeder extends Seeder
             ['category' => 'Miscellaneous', 'item' => 'Marketing, Advertising & Promotion', 'description' => 'Trade shows, banners, digital marketing.', 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()],
         ];
 
-        DB::table('expenses')->insert($expenses);
+        DB::table('expense_heads')->insert($expenses);
     }
 }

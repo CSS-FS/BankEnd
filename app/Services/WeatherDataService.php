@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Http;
 class WeatherDataService
 {
     protected $client;
+
     protected $table;
+
     protected $weatherApiKey;
 
     public function __construct()
@@ -53,14 +55,14 @@ class WeatherDataService
             ? "{$farm->latitude},{$farm->longitude}"
             : optional($farm->city)->name;
 
-        if (!$location) {
+        if (! $location) {
             return null; // Skip if no location
         }
 
         $response = Http::get('http://api.weatherapi.com/v1/current.json', [
             'key' => $this->weatherApiKey,
             'q' => $location,
-            'aqi' => 'yes'
+            'aqi' => 'yes',
         ]);
 
         return $response->successful() ? $response->json() : null;
@@ -76,8 +78,8 @@ class WeatherDataService
         $this->client->putItem([
             'TableName' => $this->table,
             'Item' => [
-                'farm_id' => ['N' => (string)$farmId],
-                'timestamp' => ['N' => (string)$timestamp],
+                'farm_id' => ['N' => (string) $farmId],
+                'timestamp' => ['N' => (string) $timestamp],
                 'data' => ['S' => json_encode($weatherData)],
             ],
         ]);

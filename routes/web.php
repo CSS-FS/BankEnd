@@ -30,6 +30,7 @@ use App\Http\Controllers\Web\ShortcutController;
 use App\Http\Controllers\Web\WebSettingController;
 use App\Models\Flock;
 use App\Models\Shed;
+use App\Services\OutdoorEnvironmentalDataService;
 use App\Services\ShedAnalyticsService;
 use Illuminate\Support\Facades\Route;
 
@@ -118,6 +119,21 @@ Route::post('/email/verification-notification', [AuthController::class, 'resendV
 Route::group(['middleware' => 'auth'], function () {
     Route::impersonate();
 
+    Route::get('/sync-outdoor', function () {
+        $svc = new OutdoorEnvironmentalDataService;
+        $affected = $svc->fetchAndStore(
+            farm_id: 1,
+            latitude: 31.9072,
+            longitude: 74.2356,
+            pastDays: 60
+        );
+
+        return response()->json([
+            'message' => 'Outdoor environmental data synced.',
+            'affected_rows' => $affected,
+        ]);
+    });
+
     Route::get('/admin-shortcuts', [ShortcutController::class, 'getAdminShortcuts']);
     Route::get('/user-shortcuts', [ShortcutController::class, 'getUserShortcuts']);
     Route::get('/my-shortcuts', [ShortcutController::class, 'getUserPersonalizedShortcuts']);
@@ -125,7 +141,14 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('/dashboard-stats/{shedId}', function ($shedId) {
         $shedService = new ShedAnalyticsService($shedId);
-        return response()->json($shedService->ShedOverview());
+
+        return response()->json(
+            [
+                'overview' => $shedService->ShedOverview(),
+                'monitoring' => $shedService->EnvironmentalMonitoring(),
+                'health' => $shedService->FlockHealth(),
+                'efficiency' => $shedService->OperationalEfficiency(),
+            ]);
     });
 });
 

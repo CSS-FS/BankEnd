@@ -148,7 +148,7 @@
 
     .chart-wrapper-fs {
         position: relative;
-        height: 300px;
+        height: 390px;
     }
 </style>
 @endpush
@@ -385,7 +385,7 @@
 
                 {{-- Environmental Monitoring Tab --}}
                 <div class="tab-pane fade" id="environmental" role="tabpanel">
-                    <h3 class="mb-4">Real-time Environmental Conditions</h3>
+                    <h3 class="mb-4">Indoor/Outdoor Environmental Stat</h3>
 
                     {{-- Environment Cards --}}
                     <div class="row g-3 mb-4">
@@ -393,9 +393,9 @@
                             <div class="card border-0 w-100">
                             <div class="env-card-fs">
                                 <div class="env-icon-fs">🌡️</div>
-                                <div class="env-value-fs">32.5°C</div>
+                                <div class="env-value-fs" id="temperature">0.0°C</div>
                                 <div class="env-label-fs">Temperature</div>
-                                <div class="text-success fs-12 mt-2">↓ 0.5°C last hour</div>
+                                <div class="text-success fs-12 mt-2" id="temperature-outdoor">0.0°C Outdoor</div>
                             </div>
                             </div>
                         </div>
@@ -403,9 +403,9 @@
                             <div class="card border-0 w-100">
                             <div class="env-card-fs">
                                 <div class="env-icon-fs">💧</div>
-                                <div class="env-value-fs">65%</div>
+                                <div class="env-value-fs" id="humidity">0.0%</div>
                                 <div class="env-label-fs">Humidity (RH)</div>
-                                <div class="text-muted fs-12 mt-2">Optimal range</div>
+                                <div class="fs-12 mt-2" id="humidity-outdoor">0.0 Outdoor</div>
                             </div>
                             </div>
                         </div>
@@ -413,9 +413,9 @@
                             <div class="card border-0 w-100">
                             <div class="env-card-fs">
                                 <div class="env-icon-fs">⚗️</div>
-                                <div class="env-value-fs">28 ppm</div>
+                                <div class="env-value-fs" id="nh">0 ppm</div>
                                 <div class="env-label-fs">NH3 Level</div>
-                                <div class="text-danger fs-12 mt-2">↑ Above threshold</div>
+                                <div class="fs-12 mt-2" id="nh-desc">↑ Above threshold</div>
                             </div>
                             </div>
                         </div>
@@ -423,9 +423,9 @@
                             <div class="card border-0 w-100">
                             <div class="env-card-fs">
                                 <div class="env-icon-fs">💨</div>
-                                <div class="env-value-fs">2800 ppm</div>
+                                <div class="env-value-fs" id="co2">0 ppm</div>
                                 <div class="env-label-fs">CO2 Level</div>
-                                <div class="text-muted fs-12 mt-2">Within limits</div>
+                                <div class="fs-12 mt-2" id="co2-desc">Within limits</div>
                             </div>
                             </div>
                         </div>
@@ -433,9 +433,9 @@
                             <div class="card border-0 w-100">
                             <div class="env-card-fs">
                                 <div class="env-icon-fs">🌬️</div>
-                                <div class="env-value-fs">2.3 m/s</div>
-                                <div class="env-label-fs">Air Velocity</div>
-                                <div class="text-muted fs-12 mt-2">Good circulation</div>
+                                <div class="env-value-fs" id="air-vel">0.0 m/s</div>
+                                <div class="env-label-fs">Outdoot Air Velocity</div>
+                                <div class="fs-12 mt-2" id="indoor-air">0.0 m/s Indoor</div>
                             </div>
                             </div>
                         </div>
@@ -443,9 +443,9 @@
                             <div class="card border-0 w-100">
                             <div class="env-card-fs">
                                 <div class="env-icon-fs">📊</div>
-                                <div class="env-value-fs">1013 hPa</div>
-                                <div class="env-label-fs">Air Pressure</div>
-                                <div class="text-muted fs-12 mt-2">Stable</div>
+                                <div class="env-value-fs" id="air-pressure">0 hPa</div>
+                                <div class="env-label-fs">Outdoor Air Pressure</div>
+                                <div class="fs-12 mt-2" id="indoor-pressure">0 hPa Indoor</div>
                             </div>
                             </div>
                         </div>
@@ -468,11 +468,11 @@
                         <div class="col-xl-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5 class="card-title mb-0">Temperature Heat Map (House Layout)</h5>
+                                    <h5 class="card-title mb-0">Temperature Heat Map</h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="chart-wrapper-fs">
-                                        <canvas id="heatMapChart"></canvas>
+                                        <div id="heatMapChart"></div>
                                     </div>
                                 </div>
                             </div>
@@ -504,17 +504,12 @@
                         <div class="col-xl-3 col-lg-6">
                             <div class="card border-0 w-100">
                             <div class="kpi-card-fs">
-                                @php
-                                    $healthScore = 85;
-                                    $progressColor = $healthScore <= 50 ? 'danger' : ($healthScore <= 70 ? 'warning' : 'success');
-                                    $textColor = $healthScore <= 50 ? 'danger' : ($healthScore <= 70 ? 'warning' : 'success');
-                                @endphp
                                 <div class="kpi-label-fs">Overall Health Score</div>
-                                <div class="progress mb-3" style="height: 10px;">
-                                    <div class="progress-bar bg-{{ $progressColor }}" role="progressbar" style="width: {{ $healthScore }}%;" aria-valuenow="{{ $healthScore }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="progress mb-3" style="height: 10px;" id="progressBar">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 95%;" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                                <h5 class="text-{{ $textColor }} mb-1">{{ $healthScore }}% - Good Health</h5>
-                                <p class="text-muted fs-12 mb-0">Based on 12 health indicators</p>
+                                <h5 class="mb-1" id="band">95% - Good Health</h5>
+                                <p class="text-muted fs-12 mb-0">Based on 08 health indicators</p>
                             </div>
                             </div>
                         </div>
@@ -522,27 +517,27 @@
                             <div class="card border-0 w-100">
                             <div class="kpi-card-fs">
                                 <div class="kpi-label-fs">Weight Uniformity</div>
-                                <div class="kpi-value-fs">CV: 8.4%</div>
-                                <div class="kpi-change-fs positive">Excellent uniformity</div>
+                                <div class="kpi-value-fs" id="uniformity">8.4%</div>
+                                <div class="kpi-change-fs" id="uniformity-desc">Excellent uniformity</div>
                             </div>
                             </div>
                         </div>
                         <div class="col-xl-3 col-lg-6">
                             <div class="card border-0 w-100">
-                            <div class="kpi-card-fs">
-                                <div class="kpi-label-fs">Today's Mortality</div>
-                                <div class="kpi-value-fs">42 birds</div>
-                                <div class="kpi-change-fs negative">↑ 12 from average</div>
-                            </div>
+                                <div class="kpi-card-fs">
+                                    <div class="kpi-label-fs">Today's Mortality</div>
+                                    <div class="kpi-value-fs" id="mortality-today">42 birds</div>
+                                    <div class="kpi-change-fs positive" id="mortality-desc">↑ 12 from average</div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-xl-3 col-lg-6">
                             <div class="card border-0 w-100">
-                            <div class="kpi-card-fs">
-                                <div class="kpi-label-fs">Vaccination Status</div>
-                                <div class="kpi-value-fs">On Schedule</div>
-                                <div class="kpi-change-fs">Next: Day 28</div>
-                            </div>
+                                <div class="kpi-card-fs">
+                                    <div class="kpi-label-fs">Vaccination Status</div>
+                                    <div class="kpi-value-fs" id="vac-status">On Schedule</div>
+                                    <div class="kpi-change-fs" id="vac-since">Next: Day 28</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -610,38 +605,47 @@
                     <div class="row g-3 mb-4">
                         <div class="col-xl-3 col-lg-6">
                             <div class="card border-0 w-100">
-                            <div class="kpi-card-fs">
-                                <div class="kpi-label-fs">Feed Efficiency</div>
-                                <div class="kpi-value-fs">89.2%</div>
-                                <div class="kpi-change-fs positive">↑ 2.1% from last cycle</div>
-                            </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-lg-6">
-                            <div class="card border-0 w-100">
-                            <div class="kpi-card-fs">
-                                <div class="kpi-label-fs">Energy Cost/Bird</div>
-                                <div class="kpi-value-fs">$0.42</div>
-                                <div class="kpi-change-fs negative">↑ $0.03 increase</div>
-                            </div>
+                                <div class="kpi-card-fs">
+                                    <div class="kpi-label-fs">Feed Efficiency</div>
+                                    <div class="kpi-value-fs" id="efficiency">0.0%</div>
+                                    <div class="kpi-change-fs" id="efficiency-desc">Excellent</div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-xl-3 col-lg-6">
                             <div class="card border-0 w-100">
+                                <div class="kpi-card-fs">
+                                    <div class="kpi-label-fs">Flock Expenses</div>
+                                    <div class="kpi-value-fs" id="expense-flock">PKR 1200000</div>
+                                    <div class="kpi-change-fs" id="expense-desc">PKR 0.0 increase</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-6">
+                            <div class="card border-0 w-100">
                             <div class="kpi-card-fs">
-                                <div class="kpi-label-fs">Water:Feed Ratio</div>
-                                <div class="kpi-value-fs">1.82:1</div>
-                                <div class="kpi-change-fs">Optimal</div>
+                                <div class="kpi-label-fs">Cost / Bird</div>
+                                <div class="kpi-value-fs" id="bird-cost">PKR 0.0</div>
+                                <div class="kpi-change-fs" id="cost-desc">From Last Flock</div>
                             </div>
                             </div>
                         </div>
-                        <div class="col-xl-3 col-lg-6">
+                        <div class="col-xl-2 col-lg-6">
                             <div class="card border-0 w-100">
-                            <div class="kpi-card-fs">
-                                <div class="kpi-label-fs">Projected Harvest</div>
-                                <div class="kpi-value-fs">Day 42</div>
-                                <div class="kpi-change-fs">Weight: 2.45 kg avg</div>
+                                <div class="kpi-card-fs">
+                                    <div class="kpi-label-fs">Feed:Water Ratio</div>
+                                    <div class="kpi-value-fs" id="fwratio">0 : 0</div>
+                                    <div class="kpi-change-fs" id="fwratio-desc">Optimal</div>
+                                </div>
                             </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-6">
+                            <div class="card border-0 w-100">
+                                <div class="kpi-card-fs">
+                                    <div class="kpi-label-fs">Projected Harvest</div>
+                                    <div class="kpi-value-fs" id="harvest">Day 42</div>
+                                    <div class="kpi-change-fs" id="harvest-desc">Weight: 2.45 kg avg</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -651,11 +655,11 @@
                         <div class="col-xl-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5 class="card-title mb-0">Resource Consumption Trends</h5>
+                                    <h5 class="card-title mb-0">Feed Efficiency and Weight Gain</h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="chart-wrapper-fs">
-                                        <canvas id="resourceChart"></canvas>
+                                        <canvas id="utilizationChart"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -663,11 +667,11 @@
                         <div class="col-xl-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5 class="card-title mb-0">Energy Usage Breakdown</h5>
+                                    <h5 class="card-title mb-0">Growth Compliance</h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="chart-wrapper-fs">
-                                        <canvas id="energyChart"></canvas>
+                                        <canvas id="growthCompliancePie"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -684,20 +688,6 @@
                                 <div class="card-body">
                                     <div class="chart-wrapper-fs">
                                         <canvas id="forecastChart"></canvas>
-                                    </div>
-                                    <div class="d-flex justify-content-center gap-3 mt-3 fs-12">
-                                        <div class="d-flex align-items-center">
-                                            <div style="width: 12px; height: 12px; background: #667eea; border-radius: 2px; margin-right: 6px;"></div>
-                                            <span>Actual Weight</span>
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <div style="width: 12px; height: 12px; background: #ffa726; border-radius: 2px; margin-right: 6px;"></div>
-                                            <span>Predicted Weight</span>
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <div style="width: 12px; height: 12px; background: rgba(255, 167, 38, 0.2); border-radius: 2px; margin-right: 6px;"></div>
-                                            <span>Confidence Range</span>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -728,13 +718,81 @@
 
 @push('js')
 <script src="{{ asset('assets/plugins/chartjs/chart.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/apexchart/apexcharts.min.js') }}"></script>
 
 <script>
+let overviewCache = null;
+let envMonitoringCache = null;
+let healthCache = null;
+let efficiencyCache = null;
+let envHeatmapChart = null;
+
+function getChartInstance(el) {
+    if (typeof Chart === 'undefined') return null;
+    if (typeof Chart.getChart === 'function') return Chart.getChart(el);
+    return null;
+}
+
+function ensureArray(value) {
+    return Array.isArray(value) ? value : [];
+}
+
+function normalizeTrend(trend) {
+    const labels = ensureArray(trend?.labels);
+    let tempData = [];
+    let humidityData = [];
+
+    if (Array.isArray(trend?.datasets)) {
+        tempData = ensureArray(trend.datasets[0]?.data);
+        humidityData = ensureArray(trend.datasets[1]?.data);
+    } else if (trend?.datasets && typeof trend.datasets === 'object') {
+        tempData = ensureArray(trend.datasets.temperature ?? trend.datasets.temp ?? trend.datasets.indoor ?? trend.datasets[0]);
+        humidityData = ensureArray(trend.datasets.humidity ?? trend.datasets.rh ?? trend.datasets[1]);
+    } else {
+        tempData = ensureArray(trend?.temperature ?? trend?.temp ?? trend?.indoor);
+        humidityData = ensureArray(trend?.humidity ?? trend?.rh);
+    }
+
+    const maxLen = Math.max(labels.length, tempData.length, humidityData.length);
+    const finalLabels = labels.length ? labels : Array.from({ length: maxLen }, (_, i) => `${i + 1}`);
+
+    return {
+        labels: finalLabels,
+        tempData,
+        humidityData
+    };
+}
+
+function normalizeTempIO(tempIO) {
+    const labels = ensureArray(tempIO?.labels);
+    const indoor = ensureArray(tempIO?.datasets?.indoor ?? tempIO?.indoor);
+    const outdoor = ensureArray(tempIO?.datasets?.outdoor ?? tempIO?.outdoor);
+    const maxLen = Math.max(labels.length, indoor.length, outdoor.length);
+    const finalLabels = labels.length ? labels : Array.from({ length: maxLen }, (_, i) => `${i + 1}`);
+    return {
+        labels: finalLabels,
+        indoor,
+        outdoor
+    };
+}
+
+function generateColors(count) {
+    return Array.from({ length: count }, (_, i) => {
+        const hue = Math.round((360 * i) / Math.max(count, 1));
+        return `hsl(${hue}, 70%, 55%)`;
+    });
+}
+
 // Initialize Executive Charts
 function initExecutiveCharts(growth, consumption, fcr, costs) {
+    if (!growth || !consumption || !fcr || !costs) {
+        return;
+    }
     // Growth Performance Chart
     const growthCtx = document.getElementById('growthChart');
     if (growthCtx) {
+        const existing = getChartInstance(growthCtx);
+        if (existing) existing.destroy();
         new Chart(growthCtx.getContext('2d'), {
             type: 'line',
             data: {
@@ -771,6 +829,8 @@ function initExecutiveCharts(growth, consumption, fcr, costs) {
     // Consumption Chart
     const consumptionCtx = document.getElementById('consumptionChart');
     if (consumptionCtx) {
+        const existing = getChartInstance(consumptionCtx);
+        if (existing) existing.destroy();
         new Chart(consumptionCtx.getContext('2d'), {
             type: 'bar',
             data: {
@@ -796,6 +856,8 @@ function initExecutiveCharts(growth, consumption, fcr, costs) {
     // FCR Chart
     const fcrCtx = document.getElementById('fcrChart');
     if (fcrCtx) {
+        const existing = getChartInstance(fcrCtx);
+        if (existing) existing.destroy();
         new Chart(fcrCtx.getContext('2d'), {
             type: 'line',
             data: {
@@ -841,6 +903,8 @@ function initExecutiveCharts(growth, consumption, fcr, costs) {
     }
 
     if (costCtx) {
+        const existing = getChartInstance(costCtx);
+        if (existing) existing.destroy();
         const labels = costs.labels || [];
         const data = (costs.data || []).map(v => Number(v) || 0);
 
@@ -898,173 +962,185 @@ function initExecutiveCharts(growth, consumption, fcr, costs) {
 }
 
 // Initialize Environmental Charts
-function initEnvironmentalCharts() {
-    const envTrendCtx = document.getElementById('envTrendChart');
-    if (envTrendCtx) {
-        new Chart(envTrendCtx.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: Array.from({length: 24}, (_, i) => `${i}:00`),
-                datasets: [{
-                    label: 'Temperature (°C)',
-                    data: [28, 27, 27, 26, 26, 27, 28, 30, 31, 32, 33, 34, 34, 35, 34, 33, 32, 31, 30, 29, 29, 28, 28, 27],
-                    borderColor: '#f44336',
-                    yAxisID: 'y',
-                    tension: 0.4
-                }, {
-                    label: 'Humidity (%)',
-                    data: [70, 72, 73, 75, 74, 72, 68, 65, 62, 60, 58, 57, 56, 55, 56, 58, 60, 62, 64, 66, 68, 69, 70, 71],
-                    borderColor: '#42a5f5',
-                    yAxisID: 'y1',
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: { display: true, text: 'Temperature (°C)' }
+function initEnvironmentalCharts(thTrend, payload, tempIO) {
+    var options;
+    if (payload) {
+        options = {
+            chart: { type: 'heatmap', height: 400 },
+            plotOptions: {
+                heatmap: {
+                    radius: 4,
+                    enableShades: false,
+                    colorScale: {
+                        ranges: [
+                            { from: 0,  to: 10, color: '#42A5F5' },
+                            { from: 10, to: 21, color: '#60B5E5' },
+                            { from: 21, to: 25, color: '#F5F3F3' },
+                            { from: 25,  to: 30, color: '#FFE3CB' },
+                            { from: 30, to: 35, color: '#FE9F43' },
+                            { from: 35, to: 60, color: '#f44336' },
+                        ],
                     },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: { display: true, text: 'Humidity (%)' },
-                        grid: { drawOnChartArea: false }
-                    }
                 }
-            }
-        });
+            },
+            legend: { show: false },
+            dataLabels: { enabled: false },
+            grid: { padding: { top: -20, bottom: 0, left: 0, right: 0 } },
+            yaxis: { labels: { offsetX: -15 } },
+            series: payload
+        };
+
+        if (envHeatmapChart && typeof envHeatmapChart.destroy === 'function') {
+            envHeatmapChart.destroy();
+        }
+        const heatMapEl = document.querySelector("#heatMapChart");
+        if (heatMapEl) {
+            heatMapEl.innerHTML = '';
+            envHeatmapChart = new ApexCharts(heatMapEl, options);
+            envHeatmapChart.render();
+        }
     }
 
-    const heatMapCtx = document.getElementById('heatMapChart');
-    if (heatMapCtx) {
-        new Chart(heatMapCtx.getContext('2d'), {
-            type: 'bubble',
-            data: {
-                datasets: [{
-                    label: 'Temperature Distribution',
-                    data: [
-                        {x: 1, y: 1, r: 15, v: 31.5},
-                        {x: 2, y: 1, r: 15, v: 32.0},
-                        {x: 3, y: 1, r: 15, v: 32.5},
-                        {x: 1, y: 2, r: 15, v: 32.2},
-                        {x: 2, y: 2, r: 15, v: 33.0},
-                        {x: 3, y: 2, r: 15, v: 32.8},
-                        {x: 1, y: 3, r: 15, v: 31.8},
-                        {x: 2, y: 3, r: 15, v: 32.3},
-                        {x: 3, y: 3, r: 15, v: 32.0}
-                    ],
-                    backgroundColor: function(context) {
-                        const value = context.raw.v;
-                        if (value < 31) return 'rgba(66, 165, 245, 0.6)';
-                        if (value < 32) return 'rgba(102, 187, 106, 0.6)';
-                        if (value < 33) return 'rgba(255, 167, 38, 0.6)';
-                        return 'rgba(244, 67, 54, 0.6)';
-                    }
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { min: 0, max: 4, title: { display: true, text: 'House Width' } },
-                    y: { min: 0, max: 4, title: { display: true, text: 'House Length' } }
+    const envTrendCtx = document.getElementById('envTrendChart');
+    if (envTrendCtx) {
+        const trend = normalizeTrend(thTrend || {});
+        if (trend.labels.length && (trend.tempData.length || trend.humidityData.length)) {
+            const existing = getChartInstance(envTrendCtx);
+            if (existing) existing.destroy();
+            new Chart(envTrendCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: trend.labels,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: trend.tempData,
+                        borderColor: '#f44336',
+                        yAxisID: 'y',
+                        tension: 0.4
+                    }, {
+                        label: 'Humidity (%)',
+                        data: trend.humidityData,
+                        borderColor: '#42a5f5',
+                        yAxisID: 'y1',
+                        tension: 0.4
+                    }]
                 },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Temperature: ${context.raw.v}°C`;
-                            }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Temperature (°C)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Relative Humidity (%)' },
+                            grid: { drawOnChartArea: false }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     }
 
     const indoorOutdoorCtx = document.getElementById('indoorOutdoorChart');
     if (indoorOutdoorCtx) {
-        new Chart(indoorOutdoorCtx.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: ['6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'],
-                datasets: [{
-                    label: 'Indoor Temp',
-                    data: [28, 30, 33, 34, 32, 29],
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    fill: true
-                }, {
-                    label: 'Outdoor Temp',
-                    data: [24, 28, 35, 37, 30, 26],
-                    borderColor: '#ffa726',
-                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
+        const io = normalizeTempIO(tempIO || {});
+        if (io.labels.length && (io.indoor.length || io.outdoor.length)) {
+            const existing = getChartInstance(indoorOutdoorCtx);
+            if (existing) existing.destroy();
+            new Chart(indoorOutdoorCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: io.labels,
+                    datasets: [{
+                        label: 'Indoor Temp',
+                        data: io.indoor,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: true
+                    }, {
+                        label: 'Outdoor Temp',
+                        data: io.outdoor,
+                        borderColor: '#ffa726',
+                        backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
     }
 }
 
 // Initialize Health Charts
-function initHealthCharts() {
+function initHealthCharts(cv, desc, cvDist, mr) {
     const uniformityCtx = document.getElementById('uniformityChart');
     if (uniformityCtx) {
         new Chart(uniformityCtx.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: ['800g', '850g', '900g', '950g', '1000g', '1050g', '1100g'],
+                labels: cvDist.labels,
                 datasets: [{
-                    label: 'Number of Birds',
-                    data: [120, 450, 1200, 2100, 1800, 600, 180],
+                    label: 'Uniformity',
+                    data: cvDist.data,
                     backgroundColor: '#667eea'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',               // age is numeric
+                        title: { display: true, text: 'Age (days)' },
+                        ticks: { precision: 0 }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Weight Distribution (%)' }
+                    }
+                },
                 plugins: {
                     title: {
                         display: true,
-                        text: 'CV: 8.4% - Excellent Uniformity'
+                        text: `CV: ${cv}% | ${desc}`
                     }
                 }
             }
         });
     }
 
+    // Transform the data from separate x,y arrays to the format Chart.js expects
+    const transformedData = mr.x.map((xValue, index) => ({
+        x: Number(xValue),
+        y: Number(mr.y[index])
+    }));
 
-    // Normalize datasets: object -> array
-    const raw = @json($datasets ?? []);
-    const datasetsArr = Array.isArray(raw) ? raw : Object.values(raw);
-
-    // Prepare series: ensure numbers + {x,y} parsing disabled
-    const prepared = datasetsArr.map((ds, i) => ({
-        label: ds.label ?? `Series ${i+1}`,
-        data: (Array.isArray(ds.data) ? ds.data : []).map(p => ({
-            x: Number(p.x),
-            y: Number(p.y)
-        })),
+// Prepare series: ensure numbers + {x,y} parsing disabled
+    const prepared = [{
+        label: 'Mortality Rate',
+        data: transformedData,
         parsing: false,
         borderWidth: 2,
         pointRadius: 2,
-        tension: 0.2
-    }));
+        tension: 0.2,
+        borderColor: '#3b82f6', // Optional: add color
+        backgroundColor: 'rgba(59, 130, 246, 0.1)', // Optional: fill color
+    }];
 
     const el = document.getElementById('mortalityPatternChart');
     if (!el) return;
 
-    // Plugin to draw a horizontal acceptable limit line at 0.274%
+// Plugin to draw a horizontal acceptable limit line at 0.274%
     const mortalityLimitLine = {
         id: 'mortalityLimitLine',
         afterDatasetsDraw(chart, args, pluginOptions) {
@@ -1073,6 +1149,7 @@ function initHealthCharts() {
             const value = typeof pluginOptions?.value === 'number' ? pluginOptions.value : 0.274;
             const y = scales.y.getPixelForValue(value);
             if (!isFinite(y)) return;
+
             ctx.save();
             ctx.strokeStyle = pluginOptions?.color || '#dc3545';
             ctx.lineWidth = 1;
@@ -1082,6 +1159,7 @@ function initHealthCharts() {
             ctx.lineTo(chartArea.right, y);
             ctx.stroke();
             ctx.setLineDash([]);
+
             // Label
             const label = pluginOptions?.label || 'Acceptable Limit (0.274%)';
             ctx.fillStyle = pluginOptions?.color || '#dc3545';
@@ -1094,37 +1172,46 @@ function initHealthCharts() {
         }
     };
 
-    new Chart(el, {
+// Initialize the chart
+    const chart = new Chart(el, {
         type: 'line',
-        data: { datasets: prepared },
+        data: {
+            datasets: prepared
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'nearest', intersect: false },
             scales: {
                 x: {
-                    type: 'linear',               // age is numeric
-                    title: { display: true, text: 'Age (days)' },
-                    ticks: { precision: 0 }       // whole-day ticks
+                    type: 'linear',
+                    title: {
+                        display: true,
+                        text: 'Age (days)'
+                    }
                 },
                 y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Mortality Rate (%)' },
-                    ticks: { callback: v => v + '%' }
+                    type: 'linear',
+                    title: {
+                        display: true,
+                        text: 'Mortality Rate (%)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(3) + '%';
+                        }
+                    }
                 }
             },
             plugins: {
-                legend: { position: 'top' },
+                legend: {
+                    display: true
+                },
                 tooltip: {
                     callbacks: {
-                        label: (c) => `${c.dataset.label}: ${(c.parsed.y ?? 0).toFixed(2)}% (Day ${c.parsed.x})`
+                        label: function(context) {
+                            return `Mortality: ${context.parsed.y.toFixed(3)}% at day ${context.parsed.x}`;
+                        }
                     }
-                },
-                // Plugin options
-                mortalityLimitLine: {
-                    value: 0.274,
-                    color: '#dc3545',
-                    label: 'Acceptable Limit (0.274%)'
                 }
             }
         },
@@ -1133,46 +1220,85 @@ function initHealthCharts() {
 }
 
 // Initialize Operational Charts
-function initOperationalCharts() {
-    const resourceCtx = document.getElementById('resourceChart');
-    if (resourceCtx) {
-        new Chart(resourceCtx.getContext('2d'), {
+function initOperationalCharts(util, complyData, forecast) {
+    const utilCtx = document.getElementById('utilizationChart');
+    if (utilCtx) {
+        new Chart(utilCtx.getContext('2d'), {
             type: 'line',
             data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+                labels: util.feed,
                 datasets: [{
-                    label: 'Feed (tons)',
-                    data: [2.1, 4.5, 7.2, 10.5, 14.2, 18.5],
+                    label: 'Feed Efficiency',
+                    data: util.feed_efficiency,
                     borderColor: '#ffa726',
+                    yAxisID: 'y0',
                     tension: 0.4
                 }, {
-                    label: 'Water (k liters)',
-                    data: [3.8, 8.1, 13.0, 18.9, 25.5, 33.3],
+                    label: 'Weight Gain (g)',
+                    data: util.weight_gain,
                     borderColor: '#42a5f5',
+                    yAxisID: 'y1',
+                    tension: 0.4
+                },{
+                    label: 'Expected Gain (g)',
+                    data: util.expected_gain,
+                    borderColor: '#f44336',
+                    yAxisID: 'y1',
                     tension: 0.4
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: { display: true, text: 'Feed Consumed (kg)' },
+                        ticks: { precision: 0 }
+                    },
+                    y0: {
+                        type: 'linear',
+                        beginAtZero: true,
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Feed Efficiency' },
+                    },
+                    y1: {
+                        type: 'linear',
+                        beginAtZero: true,
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Weight Gain (g)' },
+                        grid: { drawOnChartArea: false }
+                    }
+                },
             }
         });
     }
 
-    const energyCtx = document.getElementById('energyChart');
-    if (energyCtx) {
-        new Chart(energyCtx.getContext('2d'), {
-            type: 'pie',
+    const complyCtx = document.getElementById('growthCompliancePie');
+    if (complyCtx) {
+        new Chart(complyCtx.getContext('2d'), {
+            type: 'doughnut',
             data: {
-                labels: ['Heating', 'Cooling', 'Ventilation', 'Lighting', 'Equipment'],
+                labels: complyData.labels,
                 datasets: [{
-                    data: [35, 25, 20, 10, 10],
-                    backgroundColor: ['#f44336', '#42a5f5', '#66bb6a', '#ffeb3b', '#9e9e9e']
+                    data: complyData.data,
+                    backgroundColor: generateColors(complyData.data.length),
+                    borderWidth: 1,
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' },
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => `${c.label}: ${c.parsed} days`
+                        }
+                    }
+                }
             }
         });
     }
@@ -1182,45 +1308,37 @@ function initOperationalCharts() {
         new Chart(forecastCtx.getContext('2d'), {
             type: 'line',
             data: {
-                labels: Array.from({length: 42}, (_, i) => `Day ${i + 1}`),
-                datasets: [{
-                    label: 'Actual Weight',
-                    data: Array.from({length: 21}, (_, i) => 42 + (i * 43)),
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    fill: false
-                }, {
-                    label: 'AI Prediction',
-                    data: Array.from({length: 42}, (_, i) => i <= 20 ? null : 920 + ((i-20) * 72)),
-                    borderColor: '#ffa726',
-                    borderDash: [5, 5],
-                    fill: false
-                }, {
-                    label: 'Upper Confidence',
-                    data: Array.from({length: 42}, (_, i) => i <= 20 ? null : 920 + ((i-20) * 72) + 50),
-                    borderColor: 'rgba(255, 167, 38, 0.2)',
-                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
-                    fill: '+1',
-                    pointRadius: 0
-                }, {
-                    label: 'Lower Confidence',
-                    data: Array.from({length: 42}, (_, i) => i <= 20 ? null : 920 + ((i-20) * 72) - 50),
-                    borderColor: 'rgba(255, 167, 38, 0.2)',
-                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
-                    fill: '-1',
-                    pointRadius: 0
-                }]
+                labels: forecast.labels,
+                datasets: [
+                    {
+                        label: 'Actual Weight',
+                        data: forecast.actual_weights,
+                        spanGaps: true,
+                        tension: 0.2,
+                    },
+                    {
+                        label: 'Target Weight',
+                        data: forecast.target_weights,
+                        spanGaps: true,
+                        tension: 0.2,
+                    },
+                    {
+                        label: `Forecast Weight (Next ${forecast.forecast_days} Days)`,
+                        data: forecast.forecast_weights,
+                        spanGaps: true,
+                        tension: 0.2,
+                        borderDash: [6, 6], // dashed forecast
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { position: 'top' } },
+                interaction: { mode: 'index', intersect: false },
                 scales: {
-                    y: {
-                        title: { display: true, text: 'Weight (g)' }
-                    }
+                    x: { title: { display: true, text: 'Age (Day)' } },
+                    y: { title: { display: true, text: 'Weight' } }
                 }
             }
         });
@@ -1231,59 +1349,178 @@ function initOperationalCharts() {
 document.addEventListener('DOMContentLoaded', function() {
     const shedId = document.querySelector('#target-shed').value;
     $.get('/dashboard-stats/' + shedId, function(data) {
-        document.querySelector('#current-flock-size').innerHTML = data.currentFlockSize;
-        document.querySelector('#current-flock-age').innerHTML = `Day ${data.currentFlockAge}<span class="badge bg-soft-success text-dark float-end">${data.startFlockSize}</span>`;
-        document.querySelector('#mortality-rate').innerHTML = `${data.cumulativeMortalityRate}%`;
-        document.querySelector('#mortality-diff').innerHTML = `↑ ${data.dailyMortalityRate}% from yesterday`;
-        document.querySelector('#fcr').innerHTML = `${data.feedConversionRatio}`;
+        SetOverview(data.overview);
+        SetEnvironment(data.monitoring);
+        SetFlockHealth(data.health);
+        SetEfficiency(data.efficiency);
+    });
+
+    function SetOverview(res) {
+        overviewCache = res;
+        const overview = res;
+        document.querySelector('#current-flock-size').innerHTML = overview.currentFlockSize;
+        document.querySelector('#current-flock-age').innerHTML = `Day ${overview.currentFlockAge}<span class="badge bg-soft-success text-dark float-end">${overview.startFlockSize}</span>`;
+        document.querySelector('#mortality-rate').innerHTML = `${overview.cumulativeMortalityRate}%`;
+        document.querySelector('#mortality-diff').innerHTML = `↑ ${overview.dailyMortalityRate}% from yesterday`;
+        document.querySelector('#fcr').innerHTML = `${overview.feedConversionRatio}`;
 
         const fcrDiff = document.querySelector('#fcr-diff');
-        if(data.fcrDiff > 0) {
-            fcrDiff.innerHTML = `↓ ${data.fcrDiff}% improvement`;
+        if(overview.fcrDiff > 0) {
+            fcrDiff.innerHTML = `↓ ${overview.fcrDiff}% improvement`;
             fcrDiff.classList.add('positive');
             fcrDiff.classList.remove('negative');
         } else {
-            fcrDiff.innerHTML = `↑ ${Math.abs(data.fcrDiff)}% worsening`;
+            fcrDiff.innerHTML = `↑ ${Math.abs(overview.fcrDiff)}% worsening`;
             fcrDiff.classList.add('negative');
             fcrDiff.classList.remove('positive');
         }
 
-        document.querySelector('#target-fcr').innerHTML = `Target: ${data.targetFCR}`;
+        document.querySelector('#target-fcr').innerHTML = `Target: ${overview.targetFCR}`;
 
-        document.querySelector('#pef-score').innerHTML = `${data.pefScore}`;
+        document.querySelector('#pef-score').innerHTML = `${overview.pefScore}`;
 
         const pefRatio = document.querySelector('#pef-ratio');
-        if(data.pefRatio > 0) {
-            pefRatio.innerHTML = `↑ ${data.pefRatio} above to standard`;
+        if(overview.pefRatio > 0) {
+            pefRatio.innerHTML = `↑ ${overview.pefRatio} above to standard`;
             pefRatio.classList.add('positive');
             pefRatio.classList.remove('negative');
         } else {
-            pefRatio.innerHTML = `↓ ${Math.abs(data.pefRatio)} below to standard`;
+            pefRatio.innerHTML = `↓ ${Math.abs(overview.pefRatio)} below to standard`;
             pefRatio.classList.add('negative');
             pefRatio.classList.remove('positive');
         }
 
-        document.querySelector('#adg').innerHTML = `${data.avgDailyGain}g`;
-        document.querySelector('#adg-diff').innerHTML = `${data.targetDG}g Targeted`;
+        document.querySelector('#adg').innerHTML = `${overview.avgDailyGain}g`;
+        document.querySelector('#adg-diff').innerHTML = `${overview.targetDG}g Targeted`;
 
-        document.querySelector('#cv').innerHTML = `${data.cv}%`;
-        document.querySelector('#cv-desc').innerHTML = `${data.cvDesc}`;
+        document.querySelector('#cv').innerHTML = `${overview.cv}%`;
+        document.querySelector('#cv-desc').innerHTML = `${overview.cvDesc}`;
 
-        console.log(data);
-        initExecutiveCharts(data.growthPerformance, data.feedWaterConsumption, data.fcrComparison, data.currentFlockExpenses);
-    });
+        initExecutiveCharts(overview.growthPerformance, overview.feedWaterConsumption, overview.fcrComparison, overview.currentFlockExpenses);
+    }
 
+    function SetEnvironment(res) {
+        if (!res) return;
+        envMonitoringCache = res;
+        const monitoring = res;
 
+        document.querySelector('#temperature').innerHTML = `${monitoring.inTemperature}°C`;
+        document.querySelector('#temperature-outdoor').innerHTML = `${monitoring.outTemperature}°C Outdoor`;
+
+        document.querySelector('#humidity').innerHTML = `${monitoring.inHumidity}%`;
+        document.querySelector('#humidity-outdoor').innerHTML = `${monitoring.outHumidity}% Outdoor`;
+
+        const inNH3 = monitoring.inNH3 || {};
+        const nhValue = inNH3.value ?? inNH3.v ?? 0;
+        const nhDesc = inNH3.desc ?? inNH3.d ?? '';
+        const nhClass = inNH3.class ?? inNH3.c ?? '';
+        document.querySelector('#nh').innerHTML = `${nhValue} ppm`;
+        document.querySelector('#nh-desc').innerHTML = `${nhDesc}`;
+        document.querySelector('#nh-desc').classList.remove(...['text-success', 'text-danger']);
+        if (nhClass) document.querySelector('#nh-desc').classList.add(nhClass);
+
+        const inCO2 = monitoring.inCO2 || {};
+        const co2Value = inCO2.value ?? inCO2.v ?? 0;
+        const co2Desc = inCO2.desc ?? inCO2.d ?? '';
+        const co2Class = inCO2.class ?? inCO2.c ?? '';
+        document.querySelector('#co2').innerHTML = `${co2Value} ppm`;
+        document.querySelector('#co2-desc').innerHTML = `${co2Desc}`;
+        document.querySelector('#co2-desc').classList.remove(...['text-success', 'text-danger']);
+        if (co2Class) document.querySelector('#co2-desc').classList.add(co2Class);
+
+        document.querySelector('#air-vel').innerHTML = `${monitoring.outAirVelocity} m/s`;
+        document.querySelector('#indoor-air').innerHTML = `${monitoring.inAirVelocity} m/s Indoor`;
+
+        document.querySelector('#air-pressure').innerHTML = `${monitoring.outAirPressure} hPa`;
+        document.querySelector('#indoor-pressure').innerHTML = `${monitoring.inAirPressure} hPa Indoor`;
+
+        initEnvironmentalCharts(monitoring.temperatureHumidityTrend, monitoring.heatMapData, monitoring.temperatureIO);
+    }
+
+    function SetFlockHealth(res) {
+        if (!res) return;
+        healthCache = res;
+        const health = res;
+        let score = health.healthScore.score;
+        let band = health.healthScore.band;
+
+        document.querySelector('#progressBar').innerHTML = `<div class="progress-bar bg-${band.progress}" role="progressbar" style="width: ${score}%;" aria-valuenow="${score}" aria-valuemin="0" aria-valuemax="100"></div>`;
+        let bandCtrl = document.querySelector('#band');
+        bandCtrl.innerHTML = `${score}% - ${band.level} Health`;
+
+        document.querySelector('#uniformity').innerHTML = `${health.uniformity}%`;
+        document.querySelector('#uniformity-desc').innerHTML = `${health.cvDesc}`;
+
+        document.querySelector('#mortality-today').innerHTML = `${health.todayMortality} Birds`;
+        document.querySelector('#mortality-desc').innerHTML = `${health.totalMortality} Total Mortality`;
+
+        document.querySelector('#vac-status').innerHTML = `${health.vaccinationStatus.status}`;
+        document.querySelector('#vac-since').innerHTML = `${health.vaccinationStatus.since} Days`;
+
+        initHealthCharts(health.cv, health.cvDesc, health.weightDistribution, health.mortalityRate)
+    }
+
+    function SetEfficiency(res) {
+        efficiencyCache = res;
+        const efficiency = res;
+
+        document.querySelector('#efficiency').innerHTML = `${efficiency.feedEfficiency.v}%`;
+        let efficiencyDesc = document.querySelector('#efficiency-desc');
+        efficiencyDesc.innerHTML = `${efficiency.feedEfficiency.desc}`;
+        efficiencyDesc.classList.remove(...['positive', 'negative']);
+        efficiencyDesc.classList.add(efficiency.feedEfficiency.level);
+
+        document.querySelector('#fwratio').innerHTML = `${efficiency.feedWaterRatio}`;
+        document.querySelector('#fwratio-desc').innerHTML = `Optimial`;
+
+        document.querySelector('#expense-flock').innerHTML = `${efficiency.expense.totalExpense}`;
+        let diffExpense = document.querySelector('#expense-desc');
+        diffExpense.innerHTML = `${efficiency.expense.diffExpense}`;
+        diffExpense.classList.remove(...['positive', 'negative']);
+        diffExpense.classList.add(efficiency.expense.levelExpense);
+
+        document.querySelector('#bird-cost').innerHTML = `${efficiency.cost.birdCost}`;
+        let costDiff = document.querySelector('#cost-desc');
+        costDiff.innerHTML = `${efficiency.cost.diffBirdCost}`;
+        costDiff.classList.remove(...['positive', 'negative']);
+        costDiff.classList.add(efficiency.cost.levelBirdCost);
+
+        document.querySelector('#harvest').innerHTML = `${efficiency.projectedHarvest.age}`;
+        document.querySelector('#harvest-desc').innerHTML = `CW/EW : ${efficiency.projectedHarvest.weight} / ${efficiency.projectedHarvest.expected_weight}`;
+
+        initOperationalCharts(efficiency.feedUtilization, efficiency.complianceChart, efficiency.aiPoweredGrowth);
+    }
 });
 
 // Re-initialize charts on tab change
 document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
     tab.addEventListener('shown.bs.tab', function (event) {
         const target = event.target.getAttribute('data-bs-target');
-        if (target === '#executive') initExecutiveCharts();
-        if (target === '#environmental') initEnvironmentalCharts();
-        if (target === '#health') initHealthCharts();
-        if (target === '#operational') initOperationalCharts();
+        if (target === '#executive' && overviewCache) {
+            initExecutiveCharts(
+                overviewCache.growthPerformance,
+                overviewCache.feedWaterConsumption,
+                overviewCache.fcrComparison,
+                overviewCache.currentFlockExpenses
+            );
+        }
+        if (target === '#environmental' && envMonitoringCache) {
+            initEnvironmentalCharts(
+                envMonitoringCache.temperatureHumidityTrend,
+                envMonitoringCache.heatMapData,
+                envMonitoringCache.temperatureIO
+            );
+        }
+        if (target === '#health' && healthCache) {
+            initHealthCharts(
+                healthCache.weightDistribution,
+                healthCache.mortalityRate);
+        }
+        if (target === '#operational' && efficiencyCache) {
+            initOperationalCharts(
+                efficiencyCache.feedUtilization
+            );
+        }
     });
 });
 </script>

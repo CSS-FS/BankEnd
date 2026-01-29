@@ -13,7 +13,7 @@ class IotDataLogsSeeder extends Seeder
         $shedId = 1; // TODO: adjust according to your actual shed
         $deviceId = 1; // TODO: adjust according to your actual device
 
-        $days = 46;                 // at least 46 days according to production logs
+        $days = 30;                 // at least 46 days according to production logs
         $hoursPerDay = 24;
         $totalSlots = $days * $hoursPerDay;
 
