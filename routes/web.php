@@ -23,12 +23,15 @@ use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\PartnerController;
 use App\Http\Controllers\Web\PricingController;
 use App\Http\Controllers\Web\ProductionLogController;
+use App\Http\Controllers\Web\PushNotificationController;
 use App\Http\Controllers\Web\QrCodeController;
 use App\Http\Controllers\Web\ReportsController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\ShedController;
 use App\Http\Controllers\Web\ShortcutController;
 use App\Http\Controllers\Web\StaffController;
+use App\Http\Controllers\Web\TopicController;
+use App\Http\Controllers\Web\WebDeviceTokenController;
 use App\Http\Controllers\Web\WebSettingController;
 use App\Models\Flock;
 use App\Models\Shed;
@@ -283,6 +286,40 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin']], func
         Route::get('/', 'index')->name('notifications.index');
         Route::post('/mark-all-read', 'markAllAsRead')->name('notifications.mark-all-read');
         Route::post('/{notification}/mark-read', 'markAsRead')->name('notifications.mark-read');
+    });
+
+    Route::controller(WebDeviceTokenController::class)->group(function () {
+        Route::get('/device-tokens', 'index')
+            ->middleware('can:device_tokens.view')
+            ->name('device_tokens.index');
+
+        Route::post('/device-tokens/{token}/revoke', 'revoke')
+            ->middleware('can:device_tokens.manage')
+            ->name('device_tokens.revoke');
+    });
+
+    Route::controller(TopicController::class)->group(function () {
+        Route::get('/topics', 'index')
+            ->middleware('can:topics.view')
+            ->name('topics.index');
+
+        Route::post('/topics', 'store')
+            ->middleware('can:topics.manage')
+            ->name('topics.store');
+
+        Route::put('/topics/{topic}', 'update')
+            ->middleware('can:topics.manage')
+            ->name('topics.update');
+    });
+
+    Route::controller(PushNotificationController::class)->group(function () {
+        Route::post('/notifications/enqueue', 'enqueue')
+            ->middleware('can:notifications.send')
+            ->name('notifications.enqueue');
+
+        Route::get('/notifications/logs', 'logs')
+            ->middleware('can:notifications.logs.view')
+            ->name('notifications.logs');
     });
 
     // Productions Logs

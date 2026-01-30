@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'fcm' => [
+        'project_id' => env('FCM_PROJECT_ID'),
+        'sa_path' => env('FCM_SA_PATH'),
+    ],
+
 ];

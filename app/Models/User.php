@@ -212,4 +212,9 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->shortcuts()
             ->syncWithoutDetaching($defaultShortcuts);
     }
+
+    public function deviceTokens()
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
 }

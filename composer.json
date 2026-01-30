@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "aws/aws-sdk-php": "^3.347",
+        "google/auth": "^1.50",
         "lab404/laravel-impersonate": "^1.7",
         "laravel/cashier": "^15.7",
         "laravel/framework": "^12.0",

@@ -3,10 +3,13 @@
 use App\Http\Controllers\Api\V1\BreedController;
 use App\Http\Controllers\Api\V1\DeviceApplianceController;
 use App\Http\Controllers\Api\V1\DeviceController;
+use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\FarmController;
 use App\Http\Controllers\Api\V1\FarmManagerController;
 use App\Http\Controllers\Api\V1\FarmStaffController;
 use App\Http\Controllers\Api\V1\FlockController;
+use App\Http\Controllers\Api\V1\GraphDataController;
+use App\Http\Controllers\Api\V1\IoTDeviceDataController;
 use App\Http\Controllers\Api\V1\MedicineController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProductionLogController;
@@ -16,18 +19,18 @@ use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\SubscriptionPlanController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UserSettingsController;
-use App\Http\Controllers\Api\V1\IoTDeviceDataController;
+use App\Http\Controllers\Api\V1\WeightLogController;
 use App\Models\District;
 use App\Models\Province;
 use App\Models\Tehsil;
-use App\Http\Controllers\Api\V1\WeightLogController;
-use App\Http\Controllers\Api\V1\GraphDataController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Other routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class)->except(['store']);
+
+    Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
+    Route::delete('/device-tokens/{deviceId}', [DeviceTokenController::class, 'revoke']);
 
     Route::apiResources([
         'farms' => FarmController::class,
