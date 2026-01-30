@@ -169,6 +169,33 @@
                                 </li>
                             </ul>
                         </li>
+
+                        <li class="submenu">
+                            <a href="javascript:void(0);" class="{{ Route::is('topics.*') || Route::is('device_tokens.*') || Route::is('notifications.logs') ? 'subdrop active' : '' }}">
+                                <i class="ti ti-message-2-bolt fs-16 me-2"></i><span>Push Notifications</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <ul>
+                                <li>
+                                    <a href="{{ route('topics.index') }}"
+                                       @class(['active' => Route::is('topics.index')])>
+                                        Topics
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('device_tokens.index') }}"
+                                       @class(['active' => Route::is('device_tokens.index')])>
+                                        Device Tokens
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('notifications.logs') }}"
+                                        @class(['active' => Route::is('notifications.logs')])>
+                                        Notification Logs
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                         @endadmin
 
                         <li class="submenu">

@@ -49,6 +49,6 @@ class PushNotificationController extends Controller
     {
         $items = NotificationOutbox::orderByDesc('id')->paginate(40);
 
-        return view('admin.notifications.logs', compact('items'));
+        return view('admin.push_notifications.logs', compact('items'));
     }
 }

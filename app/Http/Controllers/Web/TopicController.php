@@ -4,16 +4,27 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\NotificationTopic;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class TopicController extends Controller
 {
+    /**
+     * @return Factory|View|\Illuminate\View\View
+     */
     public function index()
     {
-        $topics = NotificationTopic::orderBy('title')->get();
-
-        return view('admin.topics.index', compact('topics'));
+        $topics = NotificationTopic::orderBy('title')
+            ->get();
+        return view('admin.push_notifications.topics', compact('topics'));
     }
 
+    /**
+     * @param Request $request
+     * @return RedirectResponse
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -27,9 +38,14 @@ class TopicController extends Controller
 
         NotificationTopic::create($data);
 
-        return back()->with('success', 'Topic created.');
+        return back()->with('success', 'Topic created successfully.');
     }
 
+    /**
+     * @param Request $request
+     * @param NotificationTopic $topic
+     * @return RedirectResponse
+     */
     public function update(Request $request, NotificationTopic $topic)
     {
         $data = $request->validate([
@@ -44,6 +60,6 @@ class TopicController extends Controller
             'is_active' => (bool) ($data['is_active'] ?? false),
         ]);
 
-        return back()->with('success', 'Topic updated.');
+        return back()->with('success', 'Topic updated successfully.');
     }
 }

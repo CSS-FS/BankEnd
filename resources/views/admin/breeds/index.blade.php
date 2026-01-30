@@ -169,8 +169,12 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success me-2">Save Breed</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success me-2">
+                            <i class="ti ti-device-floppy me-2"></i>Save Breed
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="ti ti-x me-2"></i>Close
+                        </button>
                     </div>
                 </form>
             </div>
@@ -214,8 +218,12 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success me-2">Update Breed</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success me-2">
+                            <i class="ti ti-device-floppy me-2"></i>Update Breed
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="ti ti-x me-2"></i>Close
+                        </button>
                     </div>
                 </form>
             </div>

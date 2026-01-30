@@ -18,13 +18,13 @@ class WebDeviceTokenController extends Controller
             ->orderByDesc('last_seen_at')
             ->paginate(30);
 
-        return view('admin.device_tokens.index', compact('tokens'));
+        return view('admin.push_notifications.device_tokens', compact('tokens'));
     }
 
     public function revoke(DeviceToken $token)
     {
         $token->update(['revoked_at' => now()]);
 
-        return back()->with('success', 'Token revoked.');
+        return back()->with('success', 'Token revoked successfully.');
     }
 }
