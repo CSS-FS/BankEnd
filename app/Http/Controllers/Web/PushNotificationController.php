@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\NotificationOutbox;
+use App\Models\NotificationTopic;
 
 class PushNotificationController extends Controller
 {
