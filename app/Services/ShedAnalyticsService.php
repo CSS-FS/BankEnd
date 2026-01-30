@@ -558,18 +558,18 @@ class ShedAnalyticsService
             [$this->shedId]
         ))->last();
 
-        $trend = ($results->diff_amount > 0) ? ' Increased from Last Flock' : ' Decreased from Last Flock';
+        $trend = (!$results->diff_amount && $results->diff_amount > 0) ? ' Increased from Last Flock' : ' Decreased from Last Flock';
         $expense = [
-            'totalExpense' => 'PKR '.number_format($results->total, 1),
-            'diffExpense' => number_format($results->diff_amount, 2).'%'.$trend,
-            'levelExpense' => ($results->diff_amount > 0) ? 'negative' : 'positive',
+            'totalExpense' => 'PKR '.number_format($results->total ?? 0, 1),
+            'diffExpense' => number_format($results->diff_amount ?? 0, 2).'%'.$trend,
+            'levelExpense' => (!$results->diff_amount && $results->diff_amount > 0) ? 'negative' : 'positive',
         ];
 
-        $trend = ($results->diff_bird_cost) ? ' Increased from Last Flock' : ' Decreased from Last Flock';
+        $trend = (!$results->diff_bird_cost && $results->diff_bird_cost > 0) ? ' Increased from Last Flock' : ' Decreased from Last Flock';
         $cost = [
-            'birdCost' => number_format($results->bird_cost, 2),
-            'diffBirdCost' => 'PKR '.number_format($results->diff_bird_cost, 2).$trend,
-            'levelBirdCost' => ($results->diff_bird_cost > 0) ? 'negative' : 'positive',
+            'birdCost' => number_format($results->bird_cost ?? 0, 2),
+            'diffBirdCost' => 'PKR '.number_format($results->diff_bird_cost ?? 0, 2).$trend,
+            'levelBirdCost' => (!$results->diff_bird_cost && $results->diff_bird_cost > 0) ? 'negative' : 'positive',
         ];
 
         $projectedHarvest = [
