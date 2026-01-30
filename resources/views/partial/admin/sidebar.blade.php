@@ -175,7 +175,9 @@
                             <a href="javascript:void(0);"
                                class="{{ Route::is('admin.farms.*') ||
                                          Route::is('admin.sheds.*') ||
-                                         Route::is('admin.flocks.*') ? 'subdrop active' : '' }}">
+                                         Route::is('admin.flocks.*') ||
+                                         Route::is('admin.farm_managers.*') ||
+                                         Route::is('admin.staff.*') ? 'subdrop active' : '' }}">
                                 <i class="ti ti-building-warehouse fs-16 me-2"></i><span>Farm Structure</span>
                                 <span class="menu-arrow"></span>
                             </a>
@@ -193,13 +195,37 @@
                                         Sheds
                                     </a>
                                 </li>
-                                @endif
-
-                                @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('owner') || Auth::user()->hasRole('manager'))
                                 <li>
                                     <a href="{{ route('admin.flocks.index') }}"
                                        class="{{ request()->routeIs('admin.flocks.*') ? 'active' : '' }}">
                                         Flock Management
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.farm_managers.index') }}"
+                                       class="{{ request()->routeIs('admin.farm_managers.*') ? 'active' : '' }}">
+                                        Farm Managers
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.staff.index') }}"
+                                       class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
+                                        Staff Management
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if(Auth::user()->hasRole('manager'))
+                                <li>
+                                    <a href="{{ route('admin.flocks.index') }}"
+                                       class="{{ request()->routeIs('admin.flocks.*') ? 'active' : '' }}">
+                                        Flock Management
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.staff.index') }}"
+                                       class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
+                                        Staff Management
                                     </a>
                                 </li>
                                 @endif
@@ -209,7 +235,7 @@
                 </li>
                 @admin
                 <li class="submenu-open">
-                    <h6 class="submenu-hdr">CONTENT MANAGEMENT</h6>
+                    <h6 class="submenu-hdr">CRM</h6>
                     <ul>
                         <li class="submenu">
                             <a href="javascript:void(0);"
@@ -254,7 +280,7 @@
                 </li>
 
                 <li class="submenu-open">
-                    <h6 class="submenu-hdr">OPERATIONS</h6>
+                    <h6 class="submenu-hdr">MANAGEMENT</h6>
 
                     <ul>
                         <li class="{{ Route::is('web-settings.*') ? 'active' : '' }}">
@@ -279,7 +305,7 @@
 
                 @if(auth()->user()->hasAnyRole(['admin', 'owner', 'manager']))
                     <li class="submenu-open">
-                        <h6 class="submenu-hdr">NAVIGATION</h6>
+                        <h6 class="submenu-hdr">OPERATIONS</h6>
                         <ul>
                             <li class="submenu">
                                 <a href="javascript:void(0);"

@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ExpenseHeadController;
 use App\Http\Controllers\Web\FarmController;
 use App\Http\Controllers\Web\FarmExpenseController;
+use App\Http\Controllers\Web\FarmManagerController;
 use App\Http\Controllers\Web\FeedController;
 use App\Http\Controllers\Web\FlockController;
 use App\Http\Controllers\Web\InventoryController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Web\ReportsController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\ShedController;
 use App\Http\Controllers\Web\ShortcutController;
+use App\Http\Controllers\Web\StaffController;
 use App\Http\Controllers\Web\WebSettingController;
 use App\Models\Flock;
 use App\Models\Shed;
@@ -328,6 +330,20 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin|owner|ma
         Route::get('/{user}', 'show')->name('clients.show');
         Route::put('/{user}/update-password', 'updatePassword')->name('user.update-password');
     });
+
+    // Staff management (owner + manager)
+    Route::get('/staff', [StaffController::class, 'index'])->name('admin.staff.index');
+    Route::post('/staff', [StaffController::class, 'store'])->name('admin.staff.store');
+    Route::get('/staff/{id}', [StaffController::class, 'show'])->name('admin.staff.show'); // AJAX
+    Route::put('/staff/{id}', [StaffController::class, 'update'])->name('admin.staff.update');
+    Route::delete('/staff/{id}', [StaffController::class, 'destroy'])->name('admin.staff.destroy');
+
+    // Farm manager assignment (owner only)
+    Route::get('/farm-managers', [FarmManagerController::class, 'index'])->name('admin.farm_managers.index');
+    Route::post('/farm-managers/create-manager', [FarmManagerController::class, 'createManager'])
+        ->name('admin.farm_managers.create_manager');
+    Route::post('/farms/{farmId}/manager', [FarmManagerController::class, 'assign'])->name('admin.farms.manager.assign');
+    Route::delete('/farms/{farmId}/manager', [FarmManagerController::class, 'unassign'])->name('admin.farms.manager.unassign');
 
     // Productions Logs
     Route::prefix('productions')->controller(ProductionLogController::class)->group(function () {

@@ -17,18 +17,6 @@
         box-shadow: 0 5px 20px rgba(0,0,0,0.15);
     }
 
-    .kpi-card-fs.alert {
-        border-left: 4px solid #f44336;
-    }
-
-    .kpi-card-fs.warning {
-        border-left: 4px solid #ff9800;
-    }
-
-    .kpi-card-fs.success {
-        border-left: 4px solid #4caf50;
-    }
-
     .kpi-label-fs {
         color: #999;
         font-size: 12px;
@@ -163,7 +151,11 @@
         </div>
         <ul class="table-top-head">
             <li>
-                <a data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Refresh" data-bs-original-title="Refresh" onclick="location.reload()">
+                <a data-bs-toggle="tooltip"
+                   data-bs-placement="top"
+                   aria-label="Refresh"
+                   data-bs-original-title="Refresh"
+                   onclick="location.reload()">
                     <i class="ti ti-refresh"></i>
                 </a>
             </li>
@@ -1347,12 +1339,50 @@ function initOperationalCharts(util, complyData, forecast) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    const shedId = document.querySelector('#target-shed').value;
-    $.get('/dashboard-stats/' + shedId, function(data) {
-        SetOverview(data.overview);
-        SetEnvironment(data.monitoring);
-        SetFlockHealth(data.health);
-        SetEfficiency(data.efficiency);
+    const shedSelect = document.querySelector('#target-shed');
+    if (!shedSelect) return;
+
+    let currentShedId = shedSelect.value;
+    let activeRequest = null;
+
+    function loadDashboard(shedId) {
+        if (!shedId) return;
+
+        // Abort any in-flight request to avoid out-of-order updates
+        if (activeRequest && activeRequest.readyState !== 4) {
+            activeRequest.abort();
+        }
+
+        // (Optional) show loading state
+        // document.body.classList.add('loading');
+
+        activeRequest = $.get('/dashboard-stats/' + shedId)
+            .done(function (data) {
+                // Always check keys exist (defensive)
+                if (data?.overview)   SetOverview(data.overview);
+                if (data?.monitoring) SetEnvironment(data.monitoring);
+                if (data?.health)     SetFlockHealth(data.health);
+                if (data?.efficiency) SetEfficiency(data.efficiency);
+            })
+            .fail(function (xhr) {
+                if (xhr.statusText === 'abort') return; // ignore aborted requests
+                console.error('Dashboard fetch failed:', xhr);
+            })
+            .always(function () {
+                // document.body.classList.remove('loading');
+            });
+    }
+
+    // Initial load
+    loadDashboard(currentShedId);
+
+    // Refresh dashboard when shed changes
+    shedSelect.addEventListener('change', function (e) {
+        const newShedId = e.target.value;
+        if (newShedId === currentShedId) return;
+
+        currentShedId = newShedId;
+        loadDashboard(currentShedId);
     });
 
     function SetOverview(res) {
