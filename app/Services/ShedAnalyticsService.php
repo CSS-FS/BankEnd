@@ -528,24 +528,32 @@ class ShedAnalyticsService
 
         $results = collect(DB::select('
                         WITH FlockTotals AS (
-                            SELECT
-                                e.flock_id,
-                                SUM(e.amount) AS total,
-                                SUM(e.amount) / f.chicken_count AS bird_cost
-                            FROM
-                                farm_expenses AS e
+                                SELECT
+                                    e.flock_id,
+                                    SUM(e.amount) AS total,
+                                    SUM(e.amount) / f.chicken_count AS bird_cost
+                                FROM farm_expenses AS e
                                 INNER JOIN flocks AS f ON f.id = e.flock_id
-                            WHERE e.shed_id = ?
-                            GROUP BY e.flock_id
-                        )
-                        SELECT
-                            flock_id,
-                            total,
-                            bird_cost,
-                            ((total - LAG(total, 1, 0) OVER (ORDER BY flock_id)) * 100 / total) AS diff_amount,
-                            (bird_cost - LAG(bird_cost, 1, 0) OVER (ORDER BY flock_id)) AS diff_bird_cost
-                        FROM FlockTotals
-                        ORDER BY flock_id',
+                                WHERE e.shed_id = ?
+                                GROUP BY e.flock_id
+                            )
+                            SELECT
+                                cur.flock_id,
+                                cur.total,
+                                cur.bird_cost,
+                                CASE
+                                    WHEN cur.total = 0 THEN 0
+                                    ELSE ((cur.total - IFNULL(prev.total, 0)) * 100 / cur.total)
+                                END AS diff_amount,
+                                (cur.bird_cost - IFNULL(prev.bird_cost, 0)) AS diff_bird_cost
+                            FROM FlockTotals cur
+                            LEFT JOIN FlockTotals prev
+                                ON prev.flock_id = (
+                                    SELECT MAX(x.flock_id)
+                                    FROM FlockTotals x
+                                    WHERE x.flock_id < cur.flock_id
+                                )
+                            ORDER BY cur.flock_id;',
             [$this->shedId]
         ))->last();
 
