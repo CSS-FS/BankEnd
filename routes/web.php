@@ -90,7 +90,8 @@ Route::get('/register', function () {
 
 // Force Reset Password
 Route::get('/required-reset/{user}', function ($user) {
-    return view('auth.force-reset-password', compact('user'));
+//    return view('auth.force-reset-password', compact('user'));
+    return view('frontend.force-reset', compact('user'));
 })->name('required.reset');
 
 Route::put('/force-reset/{user}', [AuthController::class, 'forceReset'])->name('force.reset');

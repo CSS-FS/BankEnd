@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\DeviceToken;
 use App\Models\NotificationOutbox;
-use App\Models\NotificationTopic;
+use Illuminate\Support\Facades\DB;
 
 class PushNotificationController extends Controller
 {
@@ -19,35 +20,97 @@ class PushNotificationController extends Controller
             'body' => 'nullable|string|max:2000',
             'payload' => 'nullable|json',
             'scheduled_at' => 'nullable|date',
+            'fanout' => 'nullable|boolean',
         ]);
 
-        $payload = $data['payload'] ? json_decode($data['payload'], true) : null;
-
-        $outbox = new NotificationOutbox;
-        $outbox->target_type = $data['target'];
-        $outbox->title = $data['title'] ?? null;
-        $outbox->body = $data['body'] ?? null;
-        $outbox->data = $payload;
-        $outbox->scheduled_at = $data['scheduled_at'] ?? now();
-
-        if ($data['target'] === 'topic') {
-            // validate topic exists & active
-            $topic = NotificationTopic::where('name', $data['topic'] ?? '')->where('is_active', true)->firstOrFail();
-            $outbox->target_topic = $topic->name;
-        } elseif ($data['target'] === 'user') {
-            $outbox->target_id = $data['user_id'];
-        } else {
-            $outbox->target_id = $data['device_token_id'];
+        $data = [];
+        if (! empty($validated['payload'])) {
+            $decoded = json_decode($validated['payload'], true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return back()->withErrors(['payload' => 'Payload must be valid JSON.'])->withInput();
+            }
+            $data = $decoded;
         }
 
-        $outbox->save();
+        $scheduledAt = $validated['scheduled_at'] ?? null;
 
-        return back()->with('success', 'Notification queued.');
+        DB::transaction(function () use ($validated, $data, $scheduledAt) {
+
+            // TOPIC
+            if ($validated['target'] === 'topic') {
+                NotificationOutbox::create([
+                    'target_type' => 'topic',
+                    'target_topic' => $validated['topic'],
+                    'title' => $validated['title'] ?? null,
+                    'body' => $validated['body'] ?? null,
+                    'data' => $data ?: null,
+                    'scheduled_at' => $scheduledAt,
+                    'status' => 'pending',
+                ]);
+
+                return;
+            }
+
+            // TOKEN (single device)
+            if ($validated['target'] === 'token') {
+                NotificationOutbox::create([
+                    'target_type' => 'token',
+                    'target_id' => (int) $validated['device_token_id'], // device_tokens.id
+                    'title' => $validated['title'] ?? null,
+                    'body' => $validated['body'] ?? null,
+                    'data' => $data ?: null,
+                    'scheduled_at' => $scheduledAt,
+                    'status' => 'pending',
+                ]);
+
+                return;
+            }
+
+            // USER (all devices) - normal or fan-out
+            $userId = (int) $validated['user_id'];
+            $fanout = ! empty($validated['fanout']);
+
+            if (! $fanout) {
+                // single outbox row, dispatcher resolves tokens later
+                NotificationOutbox::create([
+                    'target_type' => 'user',
+                    'target_id' => $userId,
+                    'title' => $validated['title'] ?? null,
+                    'body' => $validated['body'] ?? null,
+                    'data' => $data ?: null,
+                    'scheduled_at' => $scheduledAt,
+                    'status' => 'pending',
+                ]);
+
+                return;
+            }
+
+            // FAN-OUT: create 1 outbox row per token
+            $tokens = DeviceToken::query()
+                ->where('user_id', $userId)
+                ->whereNull('revoked_at')
+                ->pluck('id');
+
+            foreach ($tokens as $tokenId) {
+                NotificationOutbox::create([
+                    'target_type' => 'token',
+                    'target_id' => (int) $tokenId,
+                    'title' => $validated['title'] ?? null,
+                    'body' => $validated['body'] ?? null,
+                    'data' => $data ?: null,
+                    'scheduled_at' => $scheduledAt,
+                    'status' => 'pending',
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Notification enqueued successfully.');
     }
 
     public function logs()
     {
-        $items = NotificationOutbox::orderByDesc('id')->paginate(40);
+        $items = NotificationOutbox::orderByDesc('id')
+            ->get();
 
         return view('admin.push_notifications.logs', compact('items'));
     }
