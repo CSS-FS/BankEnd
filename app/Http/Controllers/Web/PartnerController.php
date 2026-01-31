@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Partner;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class PartnerController extends Controller
 {
@@ -48,6 +47,7 @@ class PartnerController extends Controller
     public function create()
     {
         $partner = null;
+
         return view('admin.partners.create', compact('partner'));
     }
 

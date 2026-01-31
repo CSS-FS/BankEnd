@@ -72,21 +72,11 @@
         <div class="hero-partners">
             <div class="hero-partners__wrapper">
                 <div class="hero-partners__logos container">
-                    <a class="hero-partners__link" href="https://www.avnet.com/" target="_blank" rel="nofollow noopener">
-                        <img src="assets/img/partners/avnet-light.svg" alt="Avnet" class="hero-partners__logo">
-                    </a>
-                    <a class="hero-partners__link" href="https://www.microchip.com" target="_blank" rel="nofollow noopener">
-                        <img src="assets/img/partners/microchip-light.svg" alt="Microchip" class="hero-partners__logo">
-                    </a>
-                    <a class="hero-partners__link" href="https://lnu.edu.ua/en/" target="_blank" rel="nofollow noopener">
-                        <img src="assets/img/partners/lnu-light.svg" alt="Lviv National University" class="hero-partners__logo">
-                    </a>
-                    <a class="hero-partners__link" href="https://www.n2o.co.uk/" target="_blank" rel="nofollow noopener">
-                        <img src="assets/img/partners/n2o-light.svg" alt="N2O" class="hero-partners__logo">
-                    </a>
-                    <a class="hero-partners__link" href="https://www.undp.org/ukraine" target="_blank" rel="nofollow noopener">
-                        <img src="assets/img/partners/undp-light.svg" alt="UNDP" class="hero-partners__logo">
-                    </a>
+                    @foreach($partners as $partner)
+                        <a class="hero-partners__link" href="{{ $partner->url }}" target="_blank" rel="nofollow noopener">
+                            <img src="{{ $partner->media->first()->url ?? 'assets/img/partners/avnet-light.svg' }}" alt="{{ $partner->company_name }}" class="hero-partners__logo">
+                        </a>
+                    @endforeach
                 </div>
             </div>
         </div>

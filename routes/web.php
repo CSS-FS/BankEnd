@@ -34,6 +34,7 @@ use App\Http\Controllers\Web\TopicController;
 use App\Http\Controllers\Web\WebDeviceTokenController;
 use App\Http\Controllers\Web\WebSettingController;
 use App\Models\Flock;
+use App\Models\Partner;
 use App\Models\Shed;
 use App\Services\OutdoorEnvironmentalDataService;
 use App\Services\ShedAnalyticsService;
@@ -49,7 +50,10 @@ Route::get('/features', function () {
 })->name('features');
 
 Route::get('/partners', function () {
-    return view('frontend.partners');
+    $partners = Partner::with('media')
+        ->where('is_active', true)
+        ->get();
+    return view('frontend.partners', compact('partners'));
 })->name('partners');
 
 Route::get('/blogs', function () {
