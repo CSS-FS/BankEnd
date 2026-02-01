@@ -13,7 +13,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -264,66 +263,39 @@ class ProductionLogController extends ApiController
         return response()->json(null, 204);
     }
 
-   // public function dailyReportHeaders($shedId)
-   // {
-   //   if ($shedId) {
-   //       $shed = Shed::with('latestFlock.productionLogs')->find($shedId);
-   //       if (! $shed) {
-   //           return response()->json(['message' => 'Shed not found'], 404);
-   //       }
-
-   //       $productionLogDates = $shed->latestFlock
-   //           ->productionLogs
-   //           ->pluck('production_log_date')
-   //           ->map(function ($date) {
-   //               return Carbon::parse($date)->format('Y-m-d');
-   //           });
-
-   //       return response()->json([
-   //           'shed_id' => $shed->id,
-   //           'shed_name' => $shed->name,
-   //           'flock_id' => $shed->latestFlock->id,
-   //           'flock_name' => $shed->latestFlock->name,
-   //           'production_log_dates' => $productionLogDates,
-   //       ], 200);
-   //   } else {
-   //         return response()->json(['message' => 'Shed id is not provided.'], 404);
-   //   }
-   // }
-
     public function dailyReportHeaders($shedId, $flockId)
     {
-	$shed = Shed::where('id', $shedId)
-		->with(['flocks' => function($query) use ($flockId) {
-			$query->where('id', $flockId)->with('productionLogs');
-		}])
-		->first();
+        $shed = Shed::where('id', $shedId)
+            ->with(['flocks' => function ($query) use ($flockId) {
+                $query->where('id', $flockId)->with('productionLogs');
+            }])
+            ->first();
 
-	if (!$shed) {
-		return response()->json(['message' => 'Shed not found'], 404);
-	}
+        if (! $shed) {
+            return response()->json(['message' => 'Shed not found'], 404);
+        }
 
-	$flock = $shed->flocks->first();
+        $flock = $shed->flocks->first();
 
-	if (!$flock) {
-        	return response()->json(['message' => 'Flock not found in this shed'], 404);
-    	}
+        if (! $flock) {
+            return response()->json(['message' => 'Flock not found in this shed'], 404);
+        }
 
-    	$productionLogDates = $flock->productionLogs
-        	->pluck('production_log_date')
-        	->map(function ($date) {
-            		return Carbon::parse($date)->format('Y-m-d');
-        	});
+        $productionLogDates = $flock->productionLogs
+            ->pluck('production_log_date')
+            ->map(function ($date) {
+                return Carbon::parse($date)->format('Y-m-d');
+            });
 
-    	return response()->json([
-        	'shed_id' => $shed->id,
-        	'shed_name' => $shed->name,
-        	'flock_id' => $flock->id,
-        	'flock_name' => $flock->name,
-        	'production_log_dates' => $productionLogDates,
-    	], 200);
+        return response()->json([
+            'shed_id' => $shed->id,
+            'shed_name' => $shed->name,
+            'flock_id' => $flock->id,
+            'flock_name' => $flock->name,
+            'production_log_dates' => $productionLogDates,
+        ], 200);
     }
-		    
+
     public function productionDatesByFlock($flockId)
     {
         if ($flockId) {

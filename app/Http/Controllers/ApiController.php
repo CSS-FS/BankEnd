@@ -2,12 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 class ApiController extends Controller
 {
-    function __construct()
-    {
-
-    }
+    public function __construct() {}
 }
