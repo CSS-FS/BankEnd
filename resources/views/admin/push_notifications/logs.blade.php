@@ -129,7 +129,7 @@
                                         };
                                     @endphp
                                     <span class="p-1 pe-2 rounded-1 fs-10 {{ $badgeClass }}">
-                                        <i class="ti ti-circle-filled me-1 fs-11"></i>{{ $status }}
+                                        <i class="ti ti-circle-filled me-1 fs-11"></i>{{ strtoupper($status) }}
                                     </span>
                                 </td>
 

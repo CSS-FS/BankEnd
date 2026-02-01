@@ -6,6 +6,7 @@ use Google\Auth\Credentials\ServiceAccountCredentials;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 class FcmService
 {
@@ -37,8 +38,17 @@ class FcmService
         return Cache::remember('fcm_access_token', 3000, function () {
             $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
+            // Create HTTP handler with SSL verification disabled for local dev
+            $httpHandler = null;
+            if (app()->environment('local')) {
+                $httpHandler = function ($request, array $options = []) {
+                    $client = new \GuzzleHttp\Client(['verify' => false]);
+                    return $client->send($request, $options);
+                };
+            }
+
             $creds = new ServiceAccountCredentials($scopes, $this->saPath);
-            $token = $creds->fetchAuthToken();
+            $token = $creds->fetchAuthToken($httpHandler);
 
             return $token['access_token'];
         });
@@ -46,49 +56,74 @@ class FcmService
 
     /**
      * @param string $token
-     * @param array $notification
+     * @param string|null $title
+     * @param string|null $body
      * @param array $data
      * @return array
      * @throws ConnectionException
+     * @throws RuntimeException
      */
-    public function sendToToken(string $token, array $notification, array $data = []): array
+    public function sendToToken(string $token, ?string $title, ?string $body, array $data = []): array
     {
         return $this->send([
             'token' => $token,
-            'notification' => $notification,
+            'notification' => $this->buildNotification($title, $body),
             'data' => $this->normalizeData($data),
         ]);
     }
 
     /**
      * @param string $topic
-     * @param array $notification
+     * @param string|null $title
+     * @param string|null $body
      * @param array $data
      * @return array
      * @throws ConnectionException
+     * @throws RuntimeException
      */
-    public function sendToTopic(string $topic, array $notification, array $data = []): array
+    public function sendToTopic(string $topic, ?string $title, ?string $body, array $data = []): array
     {
         return $this->send([
             'topic' => $topic,
-            'notification' => $notification,
+            'notification' => $this->buildNotification($title, $body),
             'data' => $this->normalizeData($data),
         ]);
     }
 
     /**
+     * Build FCM notification payload.
+     *
+     * @param string|null $title
+     * @param string|null $body
+     * @return array
+     */
+    private function buildNotification(?string $title, ?string $body): array
+    {
+        $notification = [];
+        if ($title !== null) {
+            $notification['title'] = $title;
+        }
+        if ($body !== null) {
+            $notification['body'] = $body;
+        }
+
+        return $notification;
+    }
+
+    /**
      * @param array $tokens
-     * @param array $notification
+     * @param string|null $title
+     * @param string|null $body
      * @param array $data
      * @return array
      */
-    public function sendToTokens(array $tokens, array $notification, array $data = []): array
+    public function sendToTokens(array $tokens, ?string $title, ?string $body, array $data = []): array
     {
         // HTTP v1 supports "token" OR "topic" OR "condition".
         // For multiple tokens, send in a loop (or batch via your queue).
         $results = [];
         foreach ($tokens as $t) {
-            $results[] = $this->sendToToken($t, $notification, $data);
+            $results[] = $this->sendToToken($t, $title, $body, $data);
         }
 
         return $results;
@@ -103,9 +138,14 @@ class FcmService
     {
         $url = "https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send";
 
-        $resp = Http::withToken($this->accessToken())
-            ->acceptJson()
-            ->post($url, [
+        $http = Http::withToken($this->accessToken())->acceptJson();
+
+        // Disable SSL verification for local development
+        if (app()->environment('local')) {
+            $http = $http->withOptions(['verify' => false]);
+        }
+
+        $resp = $http->post($url, [
                 'message' => $message + [
                     // Optional platform overrides
                     'android' => [
@@ -125,11 +165,15 @@ class FcmService
             ]);
 
         if (! $resp->successful()) {
-            // log for troubleshooting
+            $errorBody = $resp->json();
+            $errorMessage = $errorBody['error']['message'] ?? $resp->body();
+
             logger()->error('FCM send failed', [
                 'status' => $resp->status(),
                 'body' => $resp->body(),
             ]);
+
+            throw new RuntimeException("FCM Error ({$resp->status()}): {$errorMessage}");
         }
 
         return $resp->json() ?? ['status' => $resp->status()];

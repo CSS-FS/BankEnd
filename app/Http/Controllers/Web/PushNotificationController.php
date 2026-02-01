@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\DeviceToken;
 use App\Models\NotificationOutbox;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PushNotificationController extends Controller
 {
     public function enqueue(Request $request)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'target' => 'required|in:topic,user,token',
             'topic' => 'nullable|string|max:191',
             'user_id' => 'nullable|integer|exists:users,id',

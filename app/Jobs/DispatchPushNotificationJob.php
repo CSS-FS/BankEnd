@@ -41,7 +41,7 @@ class DispatchPushNotificationJob implements ShouldQueue
 
         try {
             if ($row->target_type === 'topic') {
-                $sender->sendToTopic($row->target_topic, [$row->title, $row->body], $row->data ?? []);
+                $sender->sendToTopic($row->target_topic, $row->title, $row->body, $row->data ?? []);
                 $row->update(['status' => 'sent', 'sent_at' => now(), 'last_error' => null]);
 
                 return;
@@ -65,7 +65,7 @@ class DispatchPushNotificationJob implements ShouldQueue
                             'scheduled_at' => $row->scheduled_at,
                             'status' => 'pending',
                         ])->id
-                    );
+                    )->onQueue('push');
                 }
 
                 $row->update(['status' => 'sent', 'sent_at' => now(), 'last_error' => null]);
@@ -81,7 +81,7 @@ class DispatchPushNotificationJob implements ShouldQueue
                 return;
             }
 
-            $sender->sendToToken($token->token, [$row->title, $row->body], $row->data ?? []);
+            $sender->sendToToken($token->token, $row->title, $row->body, $row->data ?? []);
 
             $token->update(['last_seen_at' => now(), 'last_error' => null]);
             $row->update(['status' => 'sent', 'sent_at' => now(), 'last_error' => null]);

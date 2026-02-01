@@ -302,6 +302,16 @@
                                               placeholder='{"type":"flock","id":"123","route":"/flocks/123"}'></textarea>
                                     <div class="form-text">Data values will be stringified for FCM. Keep JSON valid.</div>
                                 </div>
+
+                                <div class="col-lg-12" id="fanoutWrap" style="display:none;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="1" id="fanoutCheck" name="fanout">
+                                        <label class="form-check-label" for="fanoutCheck">
+                                            Fan-out per user tokens (create one job per device for faster delivery)
+                                        </label>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
@@ -393,10 +403,11 @@
             // Send notification modal helper
             function updateTargetUI(type) {
                 $('#notifyTokenWrap,#notifyUserWrap,#notifyTopicWrap').hide();
+                $('#fanoutWrap').hide();
                 $('#notifyDeviceTokenId,#notifyUserId,#notifyTopic').prop('required', false);
 
                 if (type === 'token') { $('#notifyTokenWrap').show(); $('#notifyDeviceTokenId').prop('required', true); }
-                if (type === 'user')  { $('#notifyUserWrap').show();  $('#notifyUserId').prop('required', true); }
+                if (type === 'user')  { $('#notifyUserWrap').show();  $('#fanoutWrap').show(); $('#notifyUserId').prop('required', true); }
                 if (type === 'topic') { $('#notifyTopicWrap').show(); $('#notifyTopic').prop('required', true); }
             }
 

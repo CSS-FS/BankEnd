@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::command('weather:fetch')->everyFifteenMinutes();
 
 Schedule::command('iot:aggregate-data')->hourly();
+
+Schedule::command('push:notification --limit=200')->everyMinute()->withoutOverlapping();
+
+
