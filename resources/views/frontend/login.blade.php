@@ -35,7 +35,7 @@
                         <form class="row g-3" action="{{ route('login') }}" method="POST" id="loginForm">
                             @csrf
                             <div class="col-12">
-                                <label class="form-label text-white-50" for="loginEmail">Email</label>
+                                <label class="form-label text-white-50" for="loginEmail">User Id</label>
                                 <input type="text" id="loginEmail" name="email"
                                        class="form-control @error('email') is-invalid @enderror"
                                        placeholder="Enter email or Phone No" value="{{ old('email') }}" required>
