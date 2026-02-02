@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\PushNotificationController;
 use App\Http\Controllers\Web\ChartController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,4 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/email/verify/resend', [AuthController::class, 'resendVerificationEmail']);
 
     Route::get('/auth/session/validate', [AuthController::class, 'validateSession']);
+
+    // Push Notifications
+    Route::post('/push/notification', [PushNotificationController::class, 'sendToUser']);
 });

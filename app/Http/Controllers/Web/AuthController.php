@@ -53,22 +53,51 @@ class AuthController extends Controller
      */
     public function login(Request $request): RedirectResponse
     {
-        $credentials = $request->only('email', 'password');
+        $loginInput = $request->input('email'); // This field now contains email or phone
+        $password = $request->input('password');
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+        // Determine if the input is an email or phone number
+        $isEmail = filter_var($loginInput, FILTER_VALIDATE_EMAIL);
+        $isPhone = preg_match('/^[0-9]{10,15}$/', $loginInput); // Adjust phone regex as needed
 
-            $user = Auth::user();
-            if ($user->password_reset_required) {
-                return redirect()->route('required.reset', compact('user'));
-            } else {
-                return redirect()->route('dashboard');
-            }
+        // Validation for input type
+        if (! $isEmail && ! $isPhone) {
+            return back()->withErrors([
+                'email' => 'Please enter a valid email address or phone number.',
+            ])->onlyInput('email');
         }
 
-        return back()->withErrors([
-            'email' => 'Invalid credentials provided.',
-        ])->onlyInput('email');
+        // Find user by email or phone
+        if ($isEmail) {
+            $user = User::where('email', $loginInput)->first();
+        } else {
+            $user = User::where('phone', $loginInput)->first();
+        }
+
+        // Check if user exists
+        if (! $user) {
+            return back()->withErrors([
+                'email' => 'No account found with the provided credentials.',
+            ])->onlyInput('email');
+        }
+
+        // Verify password
+        if (! Hash::check($password, $user->password)) {
+            return back()->withErrors([
+                'password' => 'The provided password is incorrect.',
+            ])->onlyInput('email');
+        }
+
+        // Manually log in the user
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // Check for password reset requirement
+        if ($user->password_reset_required) {
+            return redirect()->route('required.reset', compact('user'));
+        }
+
+        return redirect()->route('dashboard');
     }
 
     public function forceReset(Request $request, User $user): RedirectResponse

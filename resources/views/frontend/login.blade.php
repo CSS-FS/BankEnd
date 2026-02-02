@@ -36,15 +36,28 @@
                             @csrf
                             <div class="col-12">
                                 <label class="form-label text-white-50" for="loginEmail">Email</label>
-                                <input type="text" id="loginEmail" name="email" class="form-control" placeholder="you@farm.com" required>
+                                <input type="text" id="loginEmail" name="email"
+                                       class="form-control @error('email') is-invalid @enderror"
+                                       placeholder="Enter email or Phone No" value="{{ old('email') }}" required>
+                                @error('email')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                                @enderror
                             </div>
                             <div class="col-12">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <label class="form-label text-white-50" for="loginPassword">Password</label>
                                     <a href="/forget-password" class="small text-white-50">Forgot Password?</a>
                                 </div>
-                                <input type="password" id="loginPassword" name="password" class="form-control"
+                                <input type="password" id="loginPassword" name="password"
+                                       class="form-control @error('password') is-invalid @enderror"
                                        placeholder="********" required>
+                                @error('password')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                                @enderror
                             </div>
                             <div class="col-12 d-flex justify-content-between align-items-center">
                                 <div class="form-check">
