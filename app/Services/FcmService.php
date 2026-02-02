@@ -10,18 +10,11 @@ use RuntimeException;
 
 class FcmService
 {
-    /**
-     * @param string $projectId
-     * @param string $saPath
-     */
     public function __construct(
         private readonly string $projectId,
         private readonly string $saPath
     ) {}
 
-    /**
-     * @return self
-     */
     public static function make(): self
     {
         return new self(
@@ -30,9 +23,6 @@ class FcmService
         );
     }
 
-    /**
-     * @return string
-     */
     private function accessToken(): string
     {
         return Cache::remember('fcm_access_token', 3000, function () {
@@ -43,6 +33,7 @@ class FcmService
             if (app()->environment('local')) {
                 $httpHandler = function ($request, array $options = []) {
                     $client = new \GuzzleHttp\Client(['verify' => false]);
+
                     return $client->send($request, $options);
                 };
             }
@@ -55,11 +46,6 @@ class FcmService
     }
 
     /**
-     * @param string $token
-     * @param string|null $title
-     * @param string|null $body
-     * @param array $data
-     * @return array
      * @throws ConnectionException
      * @throws RuntimeException
      */
@@ -73,11 +59,6 @@ class FcmService
     }
 
     /**
-     * @param string $topic
-     * @param string|null $title
-     * @param string|null $body
-     * @param array $data
-     * @return array
      * @throws ConnectionException
      * @throws RuntimeException
      */
@@ -92,10 +73,6 @@ class FcmService
 
     /**
      * Build FCM notification payload.
-     *
-     * @param string|null $title
-     * @param string|null $body
-     * @return array
      */
     private function buildNotification(?string $title, ?string $body): array
     {
@@ -110,13 +87,6 @@ class FcmService
         return $notification;
     }
 
-    /**
-     * @param array $tokens
-     * @param string|null $title
-     * @param string|null $body
-     * @param array $data
-     * @return array
-     */
     public function sendToTokens(array $tokens, ?string $title, ?string $body, array $data = []): array
     {
         // HTTP v1 supports "token" OR "topic" OR "condition".
@@ -130,8 +100,6 @@ class FcmService
     }
 
     /**
-     * @param array $message
-     * @return array
      * @throws ConnectionException
      */
     private function send(array $message): array
@@ -146,23 +114,23 @@ class FcmService
         }
 
         $resp = $http->post($url, [
-                'message' => $message + [
-                    // Optional platform overrides
-                    'android' => [
-                        'priority' => 'HIGH',
+            'message' => $message + [
+                // Optional platform overrides
+                'android' => [
+                    'priority' => 'HIGH',
+                ],
+                'apns' => [
+                    'headers' => [
+                        'apns-priority' => '10',
                     ],
-                    'apns' => [
-                        'headers' => [
-                            'apns-priority' => '10',
-                        ],
-                        'payload' => [
-                            'aps' => [
-                                'sound' => 'default',
-                            ],
+                    'payload' => [
+                        'aps' => [
+                            'sound' => 'default',
                         ],
                     ],
                 ],
-            ]);
+            ],
+        ]);
 
         if (! $resp->successful()) {
             $errorBody = $resp->json();
@@ -179,10 +147,6 @@ class FcmService
         return $resp->json() ?? ['status' => $resp->status()];
     }
 
-    /**
-     * @param array $data
-     * @return array
-     */
     private function normalizeData(array $data): array
     {
         // FCM data must be string values

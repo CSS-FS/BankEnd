@@ -23,7 +23,7 @@
                         </li>
                         <li class="mb-3">
                             <i class="bi bi-check-circle-fill text-primary me-2"></i>
-                            ne-page ROI model tailored to your flock size and costs
+                            One-page ROI model tailored to your flock size and costs
                         </li>
                         <li>
                             <i class="bi bi-check-circle-fill text-primary me-2"></i>
@@ -36,62 +36,81 @@
                     <div class="auth-card shadow-lg">
                         <h4 class="fw-bold mb-3 text-white">Create Your Account</h4>
                         <p class="text-white-50 mb-4">Tell us about your farm to personalise recommendations.</p>
-                        <form class="row g-3">
-                            <div class="col-md-6">
+                        <form class="row g-3" action="{{ route('client.register') }}" method="POST">
+                            @csrf
+                            <div class="col-md-12">
                                 <label class="form-label text-white-50" for="registerName">Full Name</label>
-                                <input type="text" id="registerName" class="form-control" placeholder="Adeel Ahmed"
-                                       required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-white-50" for="registerCompany">Farm / Company</label>
-                                <input type="text" id="registerCompany" class="form-control"
-                                       placeholder="FlockSense Farms" required>
+                                <input type="text" id="registerName" name="name"
+                                       class="form-control @error('name') is-invalid @enderror"
+                                       placeholder="Chaudhari Shujaat" value="{{ old('name') }}" required>
+                                @error('name')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                                @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-white-50" for="registerPhone">Phone</label>
-                                <input type="tel" id="registerPhone" class="form-control" placeholder="0300 1234567"
-                                       required>
+                                <input type="tel" id="registerPhone" name="phone"
+                                       class="form-control @error('phone') is-invalid @enderror"
+                                       placeholder="03001234567" value="{{ old('phone') }}" required>
+                                @error('phone')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                                @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-white-50" for="registerEmail">Email</label>
-                                <input type="email" id="registerEmail" class="form-control" placeholder="you@farm.com"
-                                       required>
+                                <input type="email" id="registerEmail" name="email"
+                                       class="form-control @error('email') is-invalid @enderror"
+                                       placeholder="you@farm.com" value="{{ old('email') }}" required>
+                                @error('email')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                                @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-white-50" for="registerPassword">Password</label>
-                                <input type="password" id="registerPassword" class="form-control" placeholder="********"
+                                <input type="password" id="registerPassword" name="password"
+                                       class="form-control @error('password') is-invalid @enderror"
+                                       placeholder="********"
                                        required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-white-50" for="registerConfirm">Confirm Password</label>
-                                <input type="password" id="registerConfirm" class="form-control" placeholder="********"
-                                       required>
+                                <input type="password" id="registerConfirm" name="password_confirmation"
+                                       class="form-control"
+                                       placeholder="********" required>
                             </div>
                             <div class="col-12">
-                                <label class="form-label text-white-50" for="registerRole">Primary Role</label>
-                                <select id="registerRole" class="form-select" required>
+                                <div class="progress" role="progressbar" aria-label="Password strength" aria-valuemin="0" aria-valuemax="100">
+                                    <div id="strengthBar" class="progress-bar bg-danger" style="width: 0%"></div>
+                                </div>
+                                <p id="strengthText" class="small text-white-50 mt-1 mb-0">Strength: too weak</p>
+                                @error('password')
+                                <div class="invalid-feedback d-block">
+                                    {{ $message }}
+                                </div>
+                                @enderror
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-white-50" for="registerRole">Role</label>
+                                <select id="registerRole" name="role" class="form-select @error('role') is-invalid @enderror" required>
                                     <option value="" selected disabled>Select your role</option>
-                                    <option>Farm Owner / Grower</option>
-                                    <option>Farm Supervisor</option>
-                                    <option>Nutritionist / Vet</option>
-                                    <option>Integrator / Processor</option>
+                                    <option value="owner" {{ old('role') == 'owner' ? 'selected' : '' }}>Farm Owner</option>
+                                    <option value="manager" {{ old('role') == 'manager' ? 'selected' : '' }}>Farm Manager</option>
                                 </select>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label text-white-50" for="registerScale">
-                                    Annual Bird Placement
-                                </label>
-                                <select id="registerScale" class="form-select" required>
-                                    <option value="" selected disabled>Select Scale</option>
-                                    <option>Up to 50,000 birds</option>
-                                    <option>50,000 - 250,000 birds</option>
-                                    <option>250,000 - 1 million birds</option>
-                                    <option>1 million+ birds</option>
-                                </select>
+                                @error('role')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                                @enderror
                             </div>
                             <div class="col-12">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="terms">
+                                    <input class="form-check-input" type="checkbox" value="" id="terms" required>
                                     <label class="form-check-label text-white-50" for="terms">
                                         I agree to the
                                         <a href="{{ route('privacy') }}" class="link-warning">
@@ -182,3 +201,51 @@
 
 @endsection
 
+@push('js')
+<script>
+    (function () {
+        const passwordInput = document.getElementById('registerPassword');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+
+        function assess(pw) {
+            const checks = {
+                length: pw.length >= 8,
+                upper: /[A-Z]/.test(pw),
+                lower: /[a-z]/.test(pw),
+                number: /\d/.test(pw),
+                symbol: /[^A-Za-z0-9]/.test(pw),
+            };
+            let score = Object.values(checks).filter(Boolean).length;
+            return score;
+        }
+
+        function update() {
+            const pw = passwordInput.value;
+            const score = assess(pw);
+
+            let pct = (score / 5) * 100;
+            strengthBar.style.width = pct + '%';
+            strengthBar.classList.remove('bg-danger', 'bg-warning', 'bg-success');
+
+            if (pct === 0) {
+                 strengthBar.classList.add('bg-danger');
+                 strengthText.textContent = 'Strength: too weak';
+            } else if (pct < 40) {
+                strengthBar.classList.add('bg-danger');
+                strengthText.textContent = 'Strength: weak';
+            } else if (pct < 80) {
+                strengthBar.classList.add('bg-warning');
+                strengthText.textContent = 'Strength: fair';
+            } else {
+                strengthBar.classList.add('bg-success');
+                strengthText.textContent = 'Strength: strong';
+            }
+        }
+
+        if(passwordInput) {
+            passwordInput.addEventListener('input', update);
+        }
+    })();
+</script>
+@endpush

@@ -53,6 +53,7 @@ Route::get('/partners', function () {
     $partners = Partner::with('media')
         ->where('is_active', true)
         ->get();
+
     return view('frontend.partners', compact('partners'));
 })->name('partners');
 
@@ -92,9 +93,10 @@ Route::get('/register', function () {
     return view('frontend.register');
 });
 
+Route::post('/register', [AuthController::class, 'register'])->name('client.register');
+
 // Force Reset Password
 Route::get('/required-reset/{user}', function ($user) {
-//    return view('auth.force-reset-password', compact('user'));
     return view('frontend.force-reset', compact('user'));
 })->name('required.reset');
 
@@ -163,10 +165,6 @@ Route::group(['middleware' => 'auth'], function () {
 });
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin']], function () {
-    // Register routes (GET and POST)
-    //    Route::get('/register', [AuthController::class, 'register'])->name('register');
-    //    Route::post('/register', [AuthController::class, 'register'])->name('register');
-
     // Newsletters
     Route::get('newsletters/subscribers', [NewsletterSubscriberController::class, 'index'])
         ->name('newsletters.subscribers');

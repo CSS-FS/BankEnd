@@ -32,7 +32,7 @@
             </ul>
             <div class="page-btn">
                 <a href="javascript:void(0)" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                    <i class="ti ti-circle-plus me-1"></i>Add User
+                    <i class="ti ti-circle-plus me-1"></i>Create User
                 </a>
             </div>
         </div>
@@ -283,8 +283,12 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success me-2">Save User</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success me-2">
+                            <i class="ti ti-device-floppy me-2"></i>Create User
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="ti ti-x me-2"></i>Cancel
+                        </button>
                     </div>
                 </form>
             </div>

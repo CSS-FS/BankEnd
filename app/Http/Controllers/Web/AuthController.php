@@ -24,13 +24,14 @@ class AuthController extends Controller
     /**
      * Register new user
      */
-    public function register(Request $request): JsonResponse
+    public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|min:2|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'required|string|max:15|unique:users,phone',
             'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|string|in:owner,manager',
         ]);
 
         $user = User::create([
@@ -40,12 +41,11 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        event(new Registered($user));
+        $user->assignRole($request->role);
 
-        return response()->json([
-            'message' => 'User registered successfully. Please check your email for verification.',
-            'user' => $user,
-        ], 201);
+        Auth::login($user);
+
+        return redirect()->route('dashboard');
     }
 
     /**
