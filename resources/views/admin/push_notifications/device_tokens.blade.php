@@ -299,7 +299,7 @@
                                 <div class="col-lg-12">
                                     <label class="form-label">Payload (JSON)</label>
                                     <textarea class="form-control" name="payload" rows="5"
-                                              placeholder='{"type":"flock","id":"123","route":"/flocks/123"}'></textarea>
+                                              placeholder='{"type":"flock","id":"123","route":"/flocks/123"}' required></textarea>
                                     <div class="form-text">Data values will be stringified for FCM. Keep JSON valid.</div>
                                 </div>
 
