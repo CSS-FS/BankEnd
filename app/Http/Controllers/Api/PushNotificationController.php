@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
+use App\Models\DeviceToken;
 use App\Models\NotificationOutbox;
+use App\Services\FcmService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class PushNotificationController extends ApiController
 {
+    public function __construct(private FcmService $fcmService) {}
+
     /**
      * Send a push notification to a specific user (all devices).
      *
@@ -25,24 +29,42 @@ class PushNotificationController extends ApiController
             'scheduled_at' => 'nullable|date_format:Y-m-d H:i:s',
         ]);
 
-        // Create an outbox entry targeting the user
-        // The queue worker will pick this up and dispatch to all user devices
-        $outbox = NotificationOutbox::create([
-            'target_type' => 'user',
-            'target_id' => $validated['user_id'],
-            'title' => $validated['title'],
-            'body' => $validated['body'],
-            'data' => $validated['data'] ?? null,
-            'scheduled_at' => $validated['scheduled_at'] ?? null,
-            'status' => 'pending',
-            'attempts' => 0,
-            'max_attempts' => 3,
-        ]);
+        $tokens = DeviceToken::where('user_id', $validated['user_id'])
+            ->whereNull('revoked_at')
+            ->get();
+
+        $successCount = 0;
+        $failureCount = 0;
+
+        foreach ($tokens as $token) {
+            try {
+                $this->fcmService->sendToToken(
+                    token: $token->token,
+                    title: $validated['title'],
+                    body: $validated['body'],
+                    data: $validated['data'] ?? [],
+                );
+                $successCount++;
+            } catch (\Throwable $e) {
+                $failureCount++;
+                $lastError = $e->getMessage();
+
+                logger()->warning('FCM notification failed for token', [
+                    'token_id' => $token->id,
+                    'user_id' => $validated['user_id'],
+                    'error' => $lastError,
+                ]);
+            }
+        }
+
+        $status = $successCount > 0 ? 'sent' : ($failureCount > 0 ? 'failed' : 'sent');
 
         return response()->json([
-            'message' => 'Notification queued successfully.',
-            'outbox_id' => $outbox->id,
-            'status' => 'pending',
-        ], 201);
+            'message' => $successCount > 0 ? 'Notification sent successfully.' : 'Notification delivery failed.',
+            'user_id' => $validated['user_id'],
+            'status' => $status,
+            'devices_success' => $successCount,
+            'devices_failed' => $failureCount,
+        ], $successCount > 0 ? 201 : 500);
     }
 }
