@@ -89,7 +89,7 @@ class AlertController extends Controller
         return AlertResource::collection($alerts);
     }
 
-    public function unread()
+    public function unreadAlerts()
     {
         $user = auth()->user();
 
@@ -105,9 +105,6 @@ class AlertController extends Controller
         } else {
             return response()->json(['data' => []]);
         }
-return $query->get();
-        $query->unread();
-        return $query->toSql();
 
         $alerts = $query->unread()
             ->active()

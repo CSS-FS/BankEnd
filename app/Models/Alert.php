@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,6 +27,8 @@ class Alert extends Model
         'read_at' => 'datetime',
         'is_dismissed' => 'boolean',
         'dismissed_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
 
@@ -203,7 +206,7 @@ class Alert extends Model
         }
 
         // Reduce points for age (older alerts less urgent)
-        $ageInHours = $this->created_at->diffInHours(now());
+        $ageInHours = $this->created_at?->diffInHours(Carbon::now());
         if ($ageInHours > 24) {
             $score -= min(30, ($ageInHours - 24));
         }

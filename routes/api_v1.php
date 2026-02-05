@@ -51,11 +51,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', 'store');
         Route::get('/statistics', 'statistics');
         Route::get('/priority', 'byPriority');
-        Route::get('/unread', 'unread');
+        Route::get('/unread', 'unreadAlerts');
 
-        Route::get('/', 'show');
-        Route::put('/', 'update');
-        Route::delete('/', 'destroy');
+        Route::get('/{alert}', 'show')->name('alerts.show');
+        Route::put('/{alert}', 'update');
+        Route::delete('/{alert}', 'destroy');
         Route::put('/mark-read/{alert}', 'markAsRead')->name('alerts.mark-read');
         Route::put('/mark-unread/{alert}', 'markAsUnread')->name('alerts.mark-unread');
         Route::put('/dismiss/{alert}', 'markAsDismiss')->name('alerts.dismiss');
