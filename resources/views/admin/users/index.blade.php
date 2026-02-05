@@ -162,7 +162,7 @@
                                             <i data-feather="edit" class="feather-edit"></i>
                                         </a>
 
-                                        @admin
+                                        @role('admin')
                                         <a class="me-2 p-2" href="{{ route('impersonate', $user->id) }}">
                                             <i data-feather="log-in" class="feather-log-in"></i>
                                         </a>
@@ -175,7 +175,7 @@
                                             @csrf
                                             @method('DELETE')
                                         </form>
-                                        @endadmin
+                                        @endrole
                                     </div>
                                 </td>
                             </tr>
