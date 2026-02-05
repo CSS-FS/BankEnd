@@ -36,13 +36,6 @@ return new class extends Migration
 
             $table->softDeletes();
             $table->timestamps();
-
-            // Helpful composite indexes
-            $table->index(['user_id', 'is_read']);
-            $table->index(['user_id', 'is_dismissed']);
-            $table->index(['user_id', 'type']);
-            $table->index(['user_id', 'severity']);
-            $table->index(['user_id', 'status']);
         });
     }
 
