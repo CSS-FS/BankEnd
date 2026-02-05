@@ -65,15 +65,36 @@ class Alert extends Model
         return $this->hasOne(AlertResponse::class)->latestOfMany();
     }
 
-    // Scopes
+    /**
+     * Scope for un-read alerts
+     */
     public function scopeUnread($query)
     {
         return $query->where('is_read', false);
     }
 
+    /**
+     * Scope for read alerts
+     */
     public function scopeRead($query)
     {
         return $query->where('is_read', true);
+    }
+
+    /**
+     * Scope for active alerts (not dismissed)
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_dismissed', false);
+    }
+
+    /**
+     * Scope for dismissed alerts
+     */
+    public function scopeDismissed($query)
+    {
+        return $query->where('is_dismissed', true);
     }
 
     public function scopeSeverity($query, string $level)
@@ -81,9 +102,41 @@ class Alert extends Model
         return $query->where('severity', $level);
     }
 
-    public function scopeType($query, string $type)
+    public function scopeOfType($query, string $type)
     {
         return $query->where('type', $type);
+    }
+
+    /**
+     * Scope for alerts by channel
+     */
+    public function scopeWithChannel($query, $channel)
+    {
+        return $query->where('channel', $channel);
+    }
+
+    /**
+     * Scope for farm alerts
+     */
+    public function scopeForFarm($query, $farmId)
+    {
+        return $query->where('farm_id', $farmId);
+    }
+
+    /**
+     * Scope for shed alerts
+     */
+    public function scopeForShed($query, $shedId)
+    {
+        return $query->where('shed_id', $shedId);
+    }
+
+    /**
+     * Scope for flock alerts
+     */
+    public function scopeForFlock($query, $flockId)
+    {
+        return $query->where('flock_id', $flockId);
     }
 
     // Helpers
@@ -113,5 +166,48 @@ class Alert extends Model
         $this->forceFill(['is_dismissed' => false, 'dismissed_at' => null])->save();
 
         return $this;
+    }
+
+    /**
+     * Check if alert is actionable (not dismissed and not resolved)
+     */
+    public function isActionable(): bool
+    {
+        return ! $this->is_dismissed &&
+            $this->status !== 'resolved' &&
+            $this->status !== 'cancelled';
+    }
+
+    /**
+     * Get alert priority score (higher = more urgent)
+     */
+    public function getPriorityScore(): int
+    {
+        $severityScores = [
+            'critical' => 100,
+            'warning' => 70,
+            'success' => 30,
+            'info' => 10,
+        ];
+
+        $score = $severityScores[$this->severity] ?? 50;
+
+        // Add points for unread
+        if (! $this->is_read) {
+            $score += 20;
+        }
+
+        // Add points for not dismissed
+        if (! $this->is_dismissed) {
+            $score += 15;
+        }
+
+        // Reduce points for age (older alerts less urgent)
+        $ageInHours = $this->created_at->diffInHours(now());
+        if ($ageInHours > 24) {
+            $score -= min(30, ($ageInHours - 24));
+        }
+
+        return max(0, $score);
     }
 }

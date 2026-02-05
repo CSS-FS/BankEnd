@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -22,6 +21,10 @@ class AlertResponseResource extends JsonResource
                 'alert_id' => $this->alert_id,
                 'action_type' => $this->action_type,
                 'action_details' => $this->action_details,
+
+                // User references
+                'creator_id' => $this->creator_id,
+                'responder_id' => $this->responder_id,
 
                 // User information
                 'creator' => $this->whenLoaded('creator', fn () => [

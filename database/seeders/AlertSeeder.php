@@ -30,7 +30,7 @@ class AlertSeeder extends Seeder
                 'title' => 'Temperature Alert',
                 'message' => 'Temperature in shed has exceeded safe limits. Current temperature: 32°C.',
                 'type' => 'system',
-                'severity' => 'fatal',
+                'severity' => 'critical',
             ],
             [
                 'title' => 'Feed Low Inventory',
@@ -60,7 +60,7 @@ class AlertSeeder extends Seeder
                 'title' => 'Security Breach Attempt',
                 'message' => 'Unauthorized access attempt detected at farm entrance.',
                 'type' => 'security',
-                'severity' => 'fatal',
+                'severity' => 'critical',
             ],
             [
                 'title' => 'Payment Successful',
@@ -84,7 +84,7 @@ class AlertSeeder extends Seeder
                 'title' => 'Power Outage Detected',
                 'message' => 'Backup generator activated due to main power failure.',
                 'type' => 'system',
-                'severity' => 'fatal',
+                'severity' => 'critical',
             ],
             [
                 'title' => 'Mortality Rate Alert',
@@ -108,7 +108,7 @@ class AlertSeeder extends Seeder
                 'title' => 'Biosecurity Alert',
                 'message' => 'Visitor without proper sanitization detected in shed area.',
                 'type' => 'security',
-                'severity' => 'fatal',
+                'severity' => 'critical',
             ],
             [
                 'title' => 'Feed Conversion Ratio Update',
@@ -132,7 +132,7 @@ class AlertSeeder extends Seeder
                 'title' => 'Payment Failed',
                 'message' => 'Automatic payment failed. Please update payment method.',
                 'type' => 'billing',
-                'severity' => 'fatal',
+                'severity' => 'critical',
             ],
             [
                 'title' => 'Lighting Schedule Updated',
@@ -174,7 +174,7 @@ class AlertSeeder extends Seeder
 
         // Create alerts
         foreach ($alertTemplates as $index => $template) {
-            $scheduledAt = $now->copy()->subDays(rand(1, 30))->addHours(rand(1, 12));
+            $scheduledAt = $now->copy()->subDays(rand(1, 10))->addHours(rand(1, 12));
             $sentAt = $scheduledAt->copy()->addMinutes(rand(1, 60));
 
             $alerts[] = [
@@ -192,7 +192,7 @@ class AlertSeeder extends Seeder
                     'shed_id' => 1,
                     'flock_id' => 9,
                     'timestamp' => $scheduledAt->toISOString(),
-                    'additional_info' => 'Automated alert for monitoring purposes',
+                    'additional_info' => 'FlockSense automated alert system for monitoring.',
                 ]),
                 'status' => $statuses[array_rand($statuses)],
                 'scheduled_at' => $scheduledAt,

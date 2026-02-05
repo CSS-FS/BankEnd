@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PushNotificationController;
+use App\Http\Controllers\Api\V1\AlertController;
 use App\Http\Controllers\Web\ChartController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -33,5 +34,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Push Notifications
     Route::post('/push/notification', [PushNotificationController::class, 'sendToUser']);
-    Route::post('/push/alert', [PushNotificationController::class, 'sendToUser']);
+    Route::post('/push/alert', [AlertController::class, 'sendToUser']);
 });

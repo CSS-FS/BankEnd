@@ -44,11 +44,20 @@ Route::middleware('auth:sanctum')->group(function () {
         'settings' => UserSettingsController::class,
         'production' => ProductionLogController::class,
         'medicines' => MedicineController::class,
-        'alerts' => AlertController::class,
     ]);
 
     Route::prefix('alerts')->controller(AlertController::class)->group(function () {
-        Route::put('/mark-read/{alert}', 'markRead')->name('alerts.mark-read');
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::get('/statistics', 'statistics');
+        Route::get('/priority', 'byPriority');
+        Route::get('/unread', 'unread');
+
+        Route::get('/', 'show');
+        Route::put('/', 'update');
+        Route::delete('/', 'destroy');
+        Route::put('/mark-read/{alert}', 'markAsRead')->name('alerts.mark-read');
+        Route::put('/mark-unread/{alert}', 'markAsUnread')->name('alerts.mark-unread');
         Route::put('/dismiss/{alert}', 'markAsDismiss')->name('alerts.dismiss');
         Route::put('/un-dismiss/{alert}', 'markAsUndismiss')->name('alerts.undismiss');
         Route::post('/respond/{alert}', 'responseStore')->name('alert.responses.store');

@@ -28,14 +28,25 @@ class AlertResource extends JsonResource
 
                 // State/Lifecycle
                 'status' => $this->status,
+                'status_label' => ucfirst($this->status),
                 'scheduled_at' => $this->scheduled_at?->format('Y-m-d H:i:s'),
                 'sent_at' => $this->sent_at?->format('Y-m-d H:i:s'),
-                'is_read' => (bool) $this->is_read,
+                'is_read' => $this->is_read,
                 'read_at' => $this->read_at?->format('Y-m-d H:i:s'),
-                'is_dismissed' => (bool) $this->is_dismissed,
+                'is_dismissed' => $this->is_dismissed,
                 'dismissed_at' => $this->dismissed_at?->format('Y-m-d H:i:s'),
+                'is_actionable' => $this->isActionable(),
+                'is_critical' => $this->severity === 'critical',
+                'is_warning' => $this->severity === 'warning',
+                'is_success' => $this->severity === 'success',
+                'is_info' => $this->severity === 'info',
+                'is_unread' => ! $this->is_read,
+
                 'created_at' => $this->created_at ? Carbon::parse($this->created_at)->format('Y-m-d H:i:s') : null,
                 'updated_at' => $this->updated_at ? Carbon::parse($this->updated_at)->format('Y-m-d H:i:s') : null,
+                'deleted_at' => $this->when($this->deleted_at, Carbon::parse($this->deleted_at)->format('Y-m-d H:i:s')),
+                'age_in_hours' => $this->created_at ? $this->created_at->diffForHumans() : null,
+                'priority_score' => $this->getPriorityScore(),
 
                 // Foreign Ids
                 'user_id' => $this->user_id,
@@ -72,16 +83,12 @@ class AlertResource extends JsonResource
                 'latest_response' => $this->whenLoaded('latestResponse', function () {
                     return $this->latestResponse ? new AlertResponseResource($this->latestResponse) : null;
                 }),
-
-                // Helper methods for frontend
-                'is_critical' => $this->severity === 'fatal',
-                'is_unread' => ! $this->is_read,
-                'age_in_hours' => $this->created_at ? $this->created_at->diffForHumans() : null,
             ],
             // Links
             'links' => [
                 'self' => route('alerts.show', $this->id),
                 'mark_as_read' => route('alerts.mark-read', $this->id),
+                'mark_unread' => route('alerts.mark-unread', $this->id),
                 'dismiss' => route('alerts.dismiss', $this->id),
                 'un_dismiss' => route('alerts.undismiss', $this->id),
                 'respond' => route('alert.responses.store', $this->id),
@@ -96,5 +103,6 @@ class AlertResource extends JsonResource
     {
         $response->header('X-Alert-Severity', $this->severity);
         $response->header('X-Alert-Type', $this->type);
+        $response->header('X-Alert-Status', $this->status);
     }
 }

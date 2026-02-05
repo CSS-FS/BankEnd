@@ -26,7 +26,7 @@ return new class extends Migration
             $table->enum('channel', ['in_app', 'email', 'sms', 'push'])->default('push');
             $table->json('data')->nullable();
             // State / lifecycle
-            $table->string('status')->default('queued')->index(); // queued, sent, failed, delivered
+            $table->string('status')->default('queued')->index();
             $table->dateTime('scheduled_at')->nullable()->index();
             $table->dateTime('sent_at')->nullable()->index();
             $table->boolean('is_read')->default(false)->index();

@@ -39,4 +39,44 @@ class AlertResponse extends Model
     {
         return $query->whereNull('responded_at');
     }
+
+    /**
+     * Scope for specific action types
+     */
+    public function scopeWithActionType($query, $actionType)
+    {
+        return $query->where('action_type', $actionType);
+    }
+
+    /**
+     * Scope for responses after a certain date
+     */
+    public function scopeAfter($query, $date)
+    {
+        return $query->where('responded_at', '>=', $date);
+    }
+
+    /**
+     * Scope for responses before a certain date
+     */
+    public function scopeBefore($query, $date)
+    {
+        return $query->where('responded_at', '<=', $date);
+    }
+
+    /**
+     * Check if response resolves the alert
+     */
+    public function isResolving(): bool
+    {
+        return $this->action_type === 'Resolved';
+    }
+
+    /**
+     * Check if response escalates the alert
+     */
+    public function isEscalating(): bool
+    {
+        return $this->action_type === 'Escalated';
+    }
 }

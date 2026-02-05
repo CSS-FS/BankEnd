@@ -302,13 +302,59 @@ if (! function_exists('get_alert_levels')) {
     function get_alert_levels(): array
     {
         return [
-            'fatal',
+            'critical',
             'major',
             'warning',
             'notice',
             'info',
             'debug',
             'success',
+        ];
+    }
+}
+
+if (! function_exists('get_alert_types')) {
+    /**
+     * Get all alert types.
+     */
+    function get_alert_types(): array
+    {
+        return [
+            'system',
+            'security',
+            'billing',
+            'activity',
+            'maintenance',
+        ];
+    }
+}
+
+if (! function_exists('get_alert_channels')) {
+    /**
+     * Get all alert channels
+     */
+    function get_alert_channels(): array
+    {
+        return [
+            'in_app',
+            'email',
+            'sms',
+            'push',
+        ];
+    }
+}
+
+if (! function_exists('get_alert_statuses')) {
+    /**
+     * Get all alert statuses
+     */
+    function get_alert_statuses(): array
+    {
+        return [
+            'queued',
+            'sent',
+            'failed',
+            'delivered',
         ];
     }
 }
