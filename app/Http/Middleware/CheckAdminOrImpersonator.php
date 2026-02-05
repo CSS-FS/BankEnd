@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +16,7 @@ class CheckAdminOrImpersonator
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (!$request->user()) {
+        if (! $request->user()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -25,7 +26,7 @@ class CheckAdminOrImpersonator
             $impersonatorId = session()->get('impersonate');
 
             // Get the impersonator (the original admin user)
-            $impersonator = \App\Models\User::find($impersonatorId);
+            $impersonator = User::find($impersonatorId);
 
             // Check if the impersonator has the required role
             if ($impersonator && $impersonator->hasAnyRole($roles)) {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AlertController;
 use App\Http\Controllers\Api\V1\BreedController;
 use App\Http\Controllers\Api\V1\DeviceApplianceController;
 use App\Http\Controllers\Api\V1\DeviceController;
@@ -43,7 +44,15 @@ Route::middleware('auth:sanctum')->group(function () {
         'settings' => UserSettingsController::class,
         'production' => ProductionLogController::class,
         'medicines' => MedicineController::class,
+        'alerts' => AlertController::class,
     ]);
+
+    Route::prefix('alerts')->controller(AlertController::class)->group(function () {
+        Route::put('/mark-read/{alert}', 'markRead')->name('alerts.mark-read');
+        Route::put('/dismiss/{alert}', 'markAsDismiss')->name('alerts.dismiss');
+        Route::put('/un-dismiss/{alert}', 'markAsUndismiss')->name('alerts.undismiss');
+        Route::post('/respond/{alert}', 'responseStore')->name('alert.responses.store');
+    });
 
     Route::post('farms/create', [FarmController::class, 'createFarmWithShedAndFlock']);
 

@@ -33,4 +33,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Push Notifications
     Route::post('/push/notification', [PushNotificationController::class, 'sendToUser']);
+    Route::post('/push/alert', [PushNotificationController::class, 'sendToUser']);
 });

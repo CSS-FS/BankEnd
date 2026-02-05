@@ -28,7 +28,7 @@
                                 <i class="ti ti-home fs-16 me-2"></i><span>Dashboard</span>
                             </a>
                         </li>
-                        @admin
+                        @role('admin')
                         <li class="submenu">
                             <a href="javascript:void(0);"
                                class="{{ Route::is('charts.*') ||
@@ -93,7 +93,6 @@
                                 </li>
                             </ul>
                         </li>
-
                         <li class="submenu">
                             <a href="javascript:void(0);" class="{{ Route::is('clients.*') || Route::is('roles.*') ? 'subdrop active' : '' }}">
                                 <i class="ti ti-users-group fs-16 me-2"></i><span>Users and Clients</span>
@@ -120,7 +119,6 @@
                                 </li>
                             </ul>
                         </li>
-
                         <li class="submenu">
                             <a href="javascript:void(0);"
                                class="{{ Route::is('iot.index') ||
@@ -169,7 +167,6 @@
                                 </li>
                             </ul>
                         </li>
-
                         <li class="submenu">
                             <a href="javascript:void(0);" class="{{ Route::is('topics.*') || Route::is('device_tokens.*') || Route::is('notifications.logs') ? 'subdrop active' : '' }}">
                                 <i class="ti ti-message-2-bolt fs-16 me-2"></i><span>Push Notifications</span>
@@ -196,7 +193,7 @@
                                 </li>
                             </ul>
                         </li>
-                        @endadmin
+                        @endrole
 
                         <li class="submenu">
                             <a href="javascript:void(0);"
@@ -260,7 +257,7 @@
                         </li>
                     </ul>
                 </li>
-                @admin
+                @role('admin')
                 <li class="submenu-open">
                     <h6 class="submenu-hdr">CRM</h6>
                     <ul>
@@ -305,7 +302,6 @@
                         </li>
                     </ul>
                 </li>
-
                 <li class="submenu-open">
                     <h6 class="submenu-hdr">MANAGEMENT</h6>
 
@@ -328,10 +324,10 @@
                         </li>
                     </ul>
                 </li>
-                @endadmin
+                @endrole
 
-                @if(auth()->user()->hasAnyRole(['admin', 'owner', 'manager']))
-                    <li class="submenu-open">
+                @hasanyrole('admin|owner|manager')
+                <li class="submenu-open">
                         <h6 class="submenu-hdr">OPERATIONS</h6>
                         <ul>
                             <li class="submenu">
@@ -422,7 +418,7 @@
                             </li>
                         </ul>
                     </li>
-                @endif
+                @endhasanyrole
             </ul>
         </div>
     </div>

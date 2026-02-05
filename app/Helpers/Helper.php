@@ -75,6 +75,7 @@ if (! function_exists('daily_livability')) {
             return round($netCount * 100 / $flockCount, 3);
         } catch (\Exception $e) {
             Log::error('Settings group error: '.$e->getMessage());
+
             return 0.0;
         }
     }
@@ -291,5 +292,23 @@ if (! function_exists('production_efficiency_factor')) {
         }
 
         return round(($livability * $live_weight_kg) / ($age_days * $fcr) * 100, 3);
+    }
+}
+
+if (! function_exists('get_alert_levels')) {
+    /**
+     * Get all alert criticality levels.
+     */
+    function get_alert_levels(): array
+    {
+        return [
+            'fatal',
+            'major',
+            'warning',
+            'notice',
+            'info',
+            'debug',
+            'success',
+        ];
     }
 }
