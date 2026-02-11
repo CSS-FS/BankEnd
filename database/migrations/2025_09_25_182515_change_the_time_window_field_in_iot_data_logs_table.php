@@ -11,12 +11,19 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        // Update enum values to include '3h' and 'latest'
-        DB::statement("
-            ALTER TABLE iot_data_logs
-            MODIFY COLUMN time_window ENUM('hourly', '3h', '6h', '12h', 'daily', 'latest')
-            NOT NULL AFTER record_time
-        ");
+        // if (DB::connection()->getDriverName() === 'sqlite') {
+        //     Schema::table('iot_data_logs', function (Blueprint $table) {
+        //         $table->enum('time_window', ['hourly', '3h', '6h', '12h', 'daily', 'latest'])->default('hourly');
+        //     });
+        // } else {
+        //     // MySQL approach
+        //     Schema::table('iot_data_logs', function (Blueprint $table) {
+        //         $table->enum('time_window', ['hourly', '3h', '6h', '12h', 'daily', 'latest'])
+        //             ->after('record_time')  // MySQL supports AFTER
+        //             ->nullable(false)
+        //             ->change();
+        //     });
+        // }
     }
 
     /**
@@ -24,6 +31,9 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        // Revert to old enum values
+        // Schema::table('iot_data_logs', function (Blueprint $table) {
+        //     // Drop the column if the migration is rolled back
+        //     $table->dropColumn('time_window');
+        // });
     }
 };

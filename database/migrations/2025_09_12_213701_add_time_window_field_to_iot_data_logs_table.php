@@ -10,10 +10,21 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('iot_data_logs', function (Blueprint $table) {
-            $table->enum('time_window', ['hourly', '6h', '12h', 'daily'])->after('record_time');
-            $table->index(['device_id', 'parameter', 'record_time', 'time_window'], 'idx_device_param_window');
-        });
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            Schema::table('iot_data_logs', function (Blueprint $table) {
+                $table->enum('time_window', ['hourly', '3h', '6h', '12h', 'daily', 'latest'])->default('hourly');
+                $table->index(['device_id', 'parameter', 'record_time', 'time_window'], 'idx_device_param_window');
+            });
+        } else {
+            // MySQL approach
+            Schema::table('iot_data_logs', function (Blueprint $table) {
+                $table->enum('time_window', ['hourly', '3h', '6h', '12h', 'daily', 'latest'])
+                    ->after('record_time')  // MySQL supports AFTER
+                    ->default('hourly');
+                
+                $table->index(['device_id', 'parameter', 'record_time', 'time_window'], 'idx_device_param_window');
+            });
+        }
     }
 
     /**
@@ -22,7 +33,8 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('iot_data_logs', function (Blueprint $table) {
-            //
+            // Drop the column if the migration is rolled back
+            $table->dropColumn('time_window');
         });
     }
 };
