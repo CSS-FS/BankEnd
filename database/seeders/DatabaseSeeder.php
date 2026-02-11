@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Muhammad Tariq',
             'email' => 'saaim01@gmail.com',
-            'phone' => '+03346031105',
+            'phone' => '03346031105',
         ]);
 
         User::factory()->create([
@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
             ChartSeeder::class,
             ProductionLogSeeder::class,
             WeightLogSeeder::class,
-            // ExpenseSeeder::class,
+            ExpenseSeeder::class,
             PricingSeeder::class,
             CapabilitySeeder::class,
             ConnectivitySeeder::class,

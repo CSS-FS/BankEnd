@@ -34,6 +34,7 @@ return new class extends Migration {
     {
         Schema::table('iot_data_logs', function (Blueprint $table) {
             // Drop the column if the migration is rolled back
+            $table->dropIndex('idx_device_param_window');
             $table->dropColumn('time_window');
         });
     }
