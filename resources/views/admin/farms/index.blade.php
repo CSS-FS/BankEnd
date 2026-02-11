@@ -112,10 +112,10 @@
                         <tbody>
                         @foreach($farms as $farm)
                             <tr>
-                                <td>{{ ucwords($farm->name) }}</td>
-                                <td>{{ ucwords($farm->owner->name) }}</td>
+                                <td>{{ ucwords($farm?->name) }}</td>
+                                <td>{{ ucwords($farm?->owner->name) }}</td>
                                 <td>
-                                    @if($farm->managers->count() > 0)
+                                    @if($farm?->managers->count() > 0)
                                         {{ ucwords($farm->managers->first()->name) }}
                                         <div class="text-muted fs-10">{{ $farm->managers->first()->pivot->link_date }}</div>
                                     @else
@@ -123,13 +123,13 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @forelse($farm->sheds as $shed)
+                                    @forelse($farm?->sheds as $shed)
                                         <span class="badge bg-soft-info">{{ $shed->name }}</span>
                                     @empty
                                         <span class='text-danger fs-10'>No Shed Attached</span>
                                     @endforelse
                                 </td>
-                                <td>{{ ucfirst($farm->city?->name) }}</td>
+                                <td>{{ ucfirst($farm?->city?->name) }}</td>
                                 <td class="text-wrap">{{ ucfirst($farm->address) }}</td>
                                 <td class="text-center">{{ round($farm->latitude, 4) }}</td>
                                 <td class="text-center">{{ round($farm->longitude, 4) }}</td>
