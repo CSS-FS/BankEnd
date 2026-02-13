@@ -38,8 +38,8 @@ class Farm extends Model
     {
         return $this->belongsTo(User::class, 'owner_id')
             ->withDefault([
-                'name' => 'Not Attached',
-                'email' => 'NA',
+                'name' => '---',
+                'email' => '---',
             ]);
     }
 
