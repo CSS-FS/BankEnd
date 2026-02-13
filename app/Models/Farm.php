@@ -36,7 +36,11 @@ class Farm extends Model
 
     public function owner(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'owner_id');
+        return $this->belongsTo(User::class, 'owner_id')
+            ->withDefault([
+                'name' => 'Not Attached',
+                'email' => 'NA',
+            ]);
     }
 
     public function sheds(): HasMany
