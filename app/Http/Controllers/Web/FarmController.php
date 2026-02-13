@@ -26,10 +26,6 @@ class FarmController extends Controller
         } elseif ($user->hasRole('owner')) {
             // Owner: Only farms they own
             $farms = $farmsQuery->where('owner_id', $user->id)->get();
-        } elseif ($user->hasRole('manager')) {
-            // Manager: Only farms they manage
-            $managedFarmIds = $user->managedFarms()->pluck('id')->toArray();
-            $farms = $farmsQuery->whereIn('id', $managedFarmIds)->get();
         } else {
             // Default: No access
             $farms = collect([]);

@@ -113,11 +113,11 @@
                         @foreach($farms as $farm)
                             <tr>
                                 <td>{{ ucwords($farm?->name) }}</td>
-                                <td>{{ ucwords($farm?->owner->name) }}</td>
+                                <td>{{ ucwords($farm?->owner?->name) }}</td>
                                 <td>
                                     @if($farm?->managers->count() > 0)
-                                        {{ ucwords($farm->managers->first()->name) }}
-                                        <div class="text-muted fs-10">{{ $farm->managers->first()->pivot->link_date }}</div>
+                                        {{ ucwords($farm->managers->first()?->name) }}
+                                        <div class="text-muted fs-10">{{ $farm->managers->first()?->pivot->link_date }}</div>
                                     @else
                                         <span class="text-danger fs-10">No Manager Added</span>
                                     @endif
