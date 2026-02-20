@@ -30,8 +30,16 @@ class Farm extends Model
         'city_id',
         'address',
         'owner_id',
-        'latitude',
-        'longitude',
+        'country',
+        'phone_number',
+        'contact_person',
+        'alerts',
+        'notifications',
+    ];
+
+    protected $casts = [
+        'alerts'        => 'boolean',
+        'notifications' => 'boolean',
     ];
 
     public function owner(): BelongsTo
@@ -134,8 +142,11 @@ class Farm extends Model
                 'city_id',
                 'address',
                 'owner_id',
-                'latitude',
-                'longitude',
+                'country',
+                'phone_number',
+                'contact_person',
+                'alerts',
+                'notifications',
             ])
             ->logOnlyDirty()
             ->setDescriptionForEvent(fn (string $eventName) => "Farm {$this->name} was {$eventName} by ".optional(auth()->user())->name);

@@ -118,7 +118,7 @@ class ProductionLogController extends ApiController
         $farm = $productionLog->shed->farm;
         if ($farm && $farm->owner) {
             event(new NotificationTriggered(
-                type: 'report_submitted',
+                type: 'report',
                 notifiable: $productionLog,
                 userId: $farm->owner->id,
                 farmId: $farm->id,

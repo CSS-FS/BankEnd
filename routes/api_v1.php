@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V1\SensorDataController;
 use App\Http\Controllers\Api\V1\ShedController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\SubscriptionPlanController;
+use App\Http\Controllers\Api\V1\ShedParameterLimitController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UserSettingsController;
 use App\Http\Controllers\Api\V1\WeightLogController;
@@ -90,6 +91,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::patch('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+});
+
+// Parameter-specific data and limits (Public - No Authentication Required)
+Route::prefix('sheds/{shedId}')->group(function () {
+    // Get parameter-specific data
+    Route::get('/parameters/{parameter}/data', [SensorDataController::class, 'fetchParameterData']);
+
+    // Export parameter data
+    Route::get('/parameters/{parameter}/export/excel', [SensorDataController::class, 'exportParameterExcel']);
+    Route::get('/parameters/{parameter}/export/pdf', [SensorDataController::class, 'exportParameterPdf']);
+
+    // Parameter limits (alert thresholds)
+    Route::get('/parameter-limits', [ShedParameterLimitController::class, 'index']);
+    // Route::post('/parameter-limits', [ShedParameterLimitController::class, 'store']);
+    Route::get('/parameter-limits/{parameter}', [ShedParameterLimitController::class, 'show']);
+    Route::put('/parameter-limits/{parameter}', [ShedParameterLimitController::class, 'update']);
+    // Route::delete('/parameter-limits/{parameter}', [ShedParameterLimitController::class, 'destroy']);
 });
 
 Route::apiResource('device-appliances', DeviceApplianceController::class);
