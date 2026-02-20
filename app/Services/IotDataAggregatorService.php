@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Log;
 
 class IotDataAggregatorService
 {
-    public function __construct(protected DynamoDbService $dynamoDbService) {}
+    public function __construct(
+        protected DynamoDbService $dynamoDbService,
+        protected IotAlertService $alertService
+    ) {}
 
     /**
      * Main entry: aggregate last hour’s data for all devices.
@@ -137,6 +140,8 @@ class IotDataAggregatorService
 
             $recordTime = Carbon::createFromTimestamp($windowStart)->format('Y-m-d H:i:s');
 
+            $shedId = $this->getShedIdForDevice($deviceId);
+
             IotDataLog::updateOrCreate(
                 [
                     'device_id' => $deviceId,
@@ -145,12 +150,24 @@ class IotDataAggregatorService
                     'record_time' => $recordTime,
                 ],
                 [
-                    'shed_id' => $this->getShedIdForDevice($deviceId),
+                    'shed_id' => $shedId,
                     'min_value' => $min,
                     'max_value' => $max,
                     'avg_value' => $avg,
                 ]
             );
+
+            // 🚨 Check aggregated values against thresholds
+            if ($shedId) {
+                $this->alertService->checkAggregatedThreshold(
+                    $deviceId,
+                    $shedId,
+                    $param,
+                    $min,
+                    $max,
+                    $avg
+                );
+            }
         }
     }
 

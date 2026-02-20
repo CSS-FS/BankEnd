@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Events\NotificationTriggered;
+use App\Events\ParameterThresholdBreached;
 use App\Listeners\CreateGenericNotification;
+use App\Listeners\SendParameterAlertNotification;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -46,6 +48,11 @@ class EventServiceProvider extends ServiceProvider
         Event::listen(
             NotificationTriggered::class,
             CreateGenericNotification::class
+        );
+
+        Event::listen(
+            ParameterThresholdBreached::class,
+            SendParameterAlertNotification::class
         );
     }
 }

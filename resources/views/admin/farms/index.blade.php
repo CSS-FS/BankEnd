@@ -104,8 +104,11 @@
                             <th>Sheds</th>
                             <th>City</th>
                             <th>Address</th>
-                            <th class="text-center">Latitude</th>
-                            <th class="text-center">Longitude</th>
+                            <th>Country</th>
+                            <th>Phone Number</th>
+                            <th>Contact Person</th>
+                            <th class="text-center">Alerts</th>
+                            <th class="text-center">Notifications</th>
                             <th class="no-sort"></th>
                         </tr>
                         </thead>
@@ -131,8 +134,23 @@
                                 </td>
                                 <td>{{ ucfirst($farm->city?->name) }}</td>
                                 <td class="text-wrap">{{ ucfirst($farm->address) }}</td>
-                                <td class="text-center">{{ round($farm->latitude, 4) }}</td>
-                                <td class="text-center">{{ round($farm->longitude, 4) }}</td>
+                                <td>{{ $farm->country ?? '-' }}</td>
+                                <td>{{ $farm->phone_number ?? '-' }}</td>
+                                <td>{{ $farm->contact_person ? ucwords($farm->contact_person) : '-' }}</td>
+                                <td class="text-center">
+                                    @if($farm->alerts)
+                                        <span class="badge bg-success">On</span>
+                                    @else
+                                        <span class="badge bg-secondary">Off</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    @if($farm->notifications)
+                                        <span class="badge bg-success">On</span>
+                                    @else
+                                        <span class="badge bg-secondary">Off</span>
+                                    @endif
+                                </td>
                                 <td class="action-table-data">
                                     <div class="action-icon d-inline-flex">
                                         @if(auth()->user()->hasRole('admin'))
@@ -255,16 +273,55 @@
                                 <div class="invalid-feedback">Address is required.</div>
                             </div>
 
-                            {{-- Latitude --}}
+                            {{-- Country --}}
                             <div class="col-lg-6 mb-3">
-                                <label for="latitude" class="form-label">Latitude</label>
-                                <input type="text" class="form-control" id="latitude" name="latitude">
+                                <label for="country" class="form-label">Country<span class="text-danger ms-1">*</span></label>
+                                <select class="form-select" id="country" name="country" required>
+                                    <option value="Pakistan" selected>Pakistan</option>
+                                    <option value="Afghanistan">Afghanistan</option>
+                                    <option value="Bangladesh">Bangladesh</option>
+                                    <option value="China">China</option>
+                                    <option value="India">India</option>
+                                    <option value="Iran">Iran</option>
+                                    <option value="Saudi Arabia">Saudi Arabia</option>
+                                    <option value="UAE">UAE</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div class="invalid-feedback">Country is required.</div>
                             </div>
 
-                            {{-- Longitude --}}
+                            {{-- Phone Number --}}
                             <div class="col-lg-6 mb-3">
-                                <label for="longitude" class="form-label">Longitude</label>
-                                <input type="text" class="form-control" id="longitude" name="longitude">
+                                <label for="phone_number" class="form-label">Phone Number</label>
+                                <input type="text" class="form-control" id="phone_number" name="phone_number"
+                                       maxlength="11" inputmode="numeric"
+                                       oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                            </div>
+
+                            {{-- Contact Person --}}
+                            <div class="col-lg-6 mb-3">
+                                <label for="contact_person" class="form-label">Contact Person</label>
+                                <input type="text" class="form-control" id="contact_person" name="contact_person" maxlength="50">
+                            </div>
+
+                            {{-- Alerts --}}
+                            <div class="col-lg-3 mb-3">
+                                <label class="form-label d-block">Alerts</label>
+                                <div class="form-check form-switch mt-1">
+                                    <input type="hidden" name="alerts" value="0">
+                                    <input class="form-check-input" type="checkbox" id="alerts" name="alerts" value="1">
+                                    <label class="form-check-label" for="alerts">Enable Alerts</label>
+                                </div>
+                            </div>
+
+                            {{-- Notifications --}}
+                            <div class="col-lg-3 mb-3">
+                                <label class="form-label d-block">Notifications</label>
+                                <div class="form-check form-switch mt-1">
+                                    <input type="hidden" name="notifications" value="0">
+                                    <input class="form-check-input" type="checkbox" id="notifications" name="notifications" value="1">
+                                    <label class="form-check-label" for="notifications">Enable Notifications</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -336,14 +393,55 @@
                                 <div class="invalid-feedback">Address line should be mentioned.</div>
                             </div>
 
+                            {{-- Country --}}
                             <div class="col-lg-6 mb-3">
-                                <label class="form-label">Latitude</label>
-                                <input type="text" class="form-control" id="edit_latitude" name="latitude">
+                                <label class="form-label">Country<span class="text-danger">*</span></label>
+                                <select class="form-select" id="edit_country" name="country" required>
+                                    <option value="Pakistan">Pakistan</option>
+                                    <option value="Afghanistan">Afghanistan</option>
+                                    <option value="Bangladesh">Bangladesh</option>
+                                    <option value="China">China</option>
+                                    <option value="India">India</option>
+                                    <option value="Iran">Iran</option>
+                                    <option value="Saudi Arabia">Saudi Arabia</option>
+                                    <option value="UAE">UAE</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div class="invalid-feedback">Country is required.</div>
                             </div>
 
+                            {{-- Phone Number --}}
                             <div class="col-lg-6 mb-3">
-                                <label class="form-label">Longitude</label>
-                                <input type="text" class="form-control" id="edit_longitude" name="longitude">
+                                <label class="form-label">Phone Number</label>
+                                <input type="text" class="form-control" id="edit_phone_number" name="phone_number"
+                                       maxlength="11" inputmode="numeric"
+                                       oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                            </div>
+
+                            {{-- Contact Person --}}
+                            <div class="col-lg-6 mb-3">
+                                <label class="form-label">Contact Person</label>
+                                <input type="text" class="form-control" id="edit_contact_person" name="contact_person" maxlength="50">
+                            </div>
+
+                            {{-- Alerts --}}
+                            <div class="col-lg-3 mb-3">
+                                <label class="form-label d-block">Alerts</label>
+                                <div class="form-check form-switch mt-1">
+                                    <input type="hidden" name="alerts" value="0">
+                                    <input class="form-check-input" type="checkbox" id="edit_alerts" name="alerts" value="1">
+                                    <label class="form-check-label" for="edit_alerts">Enable Alerts</label>
+                                </div>
+                            </div>
+
+                            {{-- Notifications --}}
+                            <div class="col-lg-3 mb-3">
+                                <label class="form-label d-block">Notifications</label>
+                                <div class="form-check form-switch mt-1">
+                                    <input type="hidden" name="notifications" value="0">
+                                    <input class="form-check-input" type="checkbox" id="edit_notifications" name="notifications" value="1">
+                                    <label class="form-check-label" for="edit_notifications">Enable Notifications</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -545,12 +643,14 @@
         document.addEventListener('DOMContentLoaded', function() {
             const province = document.getElementById('edit_province_id');
             const district = document.getElementById('edit_district_id');
-            const city = document.getElementById('edit_city_id');
+            const city     = document.getElementById('edit_city_id');
 
-            async function loadOwners(selectedId = null) {
-                const ownersSelect = document.getElementById('edit_owner_id'); // Or use a param
+            // Flag: prevents change-event cascade while edit modal is initializing
+            let isEditInitializing = false;
+
+            function loadOwners(selectedId = null) {
+                const ownersSelect = document.getElementById('edit_owner_id');
                 if (!ownersSelect) return;
-
                 ownersSelect.innerHTML = `<option>Select Owner</option>`;
                 ownersData.forEach(item => {
                     const option = new Option(item.name, item.id, false, item.id == selectedId);
@@ -559,21 +659,12 @@
                 $(ownersSelect).trigger('change');
             }
 
-            async function loadProvinces(selectedId = null) {
-                fetch('/api/v1/provinces')
-                    .then(res => res.json())
-                    .then(data => {
-                        populateSelect(province, data, 'Select Province', selectedId);
-                    });
-
-                $(province).trigger('change');
-            }
-
+            // Province change: only runs when user manually changes, not during init
             $(province).on('change', function () {
+                if (isEditInitializing) return;
                 const provinceId = this.value;
                 resetSelect(district, 'Select District');
                 resetSelect(city, 'Select City');
-
                 if (provinceId) {
                     fetch(`/api/v1/districts/${provinceId}`)
                         .then(response => response.json())
@@ -583,20 +674,11 @@
                 }
             });
 
-            async function loadDistricts(provinceId, selectedId = null) {
-                fetch(`/api/v1/districts/${provinceId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        populateSelect(district, data, 'Select Province', selectedId);
-                    });
-
-                $(district).trigger('change');
-            }
-
+            // District change: only runs when user manually changes, not during init
             $(district).on('change', function () {
+                if (isEditInitializing) return;
                 const districtId = this.value;
                 resetSelect(city, 'Select City');
-
                 if (districtId) {
                     fetch(`/api/v1/cities/${districtId}`)
                         .then(response => response.json())
@@ -606,42 +688,54 @@
                 }
             });
 
-            async function loadCities(districtId, selectedId = null) {
-                fetch(`/api/v1/cities/${districtId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        populateSelect(city, data, 'Select City', selectedId);
-                    });
-            }
-
             document.querySelectorAll('.edit-farm').forEach(function(button) {
-                button.addEventListener('click', function() {
-                    var farmId = this.getAttribute('data-farm-id');
+                button.addEventListener('click', async function() {
+                    var farmId   = this.getAttribute('data-farm-id');
                     var farmName = this.getAttribute('data-farm-name');
-                    var form = document.getElementById('editFarmForm');
-                    form.action = '/admin/farms/' + farmId;
 
-                    fetch(`/admin/farms/${farmId}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            document.getElementById('editFarmForm').action = `/admin/farms/${data.id}`;
+                    const res  = await fetch(`/admin/farms/${farmId}`);
+                    const data = await res.json();
 
-                            // Populate modal fields
-                            document.getElementById('editFarmModalLabel').innerText = `Edit Farm - ${farmName}`;
-                            document.getElementById('edit_farm_id').value = data.id;
-                            document.getElementById('edit_name').value = data.name;
-                            document.getElementById('edit_owner_id').value = data.owner_id;
-                            document.getElementById('edit_address').value = data.address;
-                            document.getElementById('edit_latitude').value = data.latitude || '';
-                            document.getElementById('edit_longitude').value = data.longitude || '';
+                    document.getElementById('editFarmForm').action               = `/admin/farms/${data.id}`;
+                    document.getElementById('editFarmModalLabel').innerText       = `Edit Farm - ${farmName}`;
+                    document.getElementById('edit_farm_id').value                 = data.id;
+                    document.getElementById('edit_name').value                    = data.name;
+                    document.getElementById('edit_address').value                 = data.address;
+                    document.getElementById('edit_phone_number').value            = data.phone_number || '';
+                    document.getElementById('edit_contact_person').value          = data.contact_person || '';
+                    document.getElementById('edit_country').value                 = data.country || 'Pakistan';
+                    document.getElementById('edit_alerts').checked                = data.alerts == 1;
+                    document.getElementById('edit_notifications').checked         = data.notifications == 1;
 
-                            loadOwners(data.owner_id);
-                            loadProvinces(data.province_id);
-                            loadDistricts(data.province_id, data.district_id);
-                            loadCities(data.district_id, data.city_id);
+                    // Block cascade reset during initialization
+                    isEditInitializing = true;
 
-                            new bootstrap.Modal(document.getElementById('editFarmModal')).show();
-                        });
+                    // Step 1: Owners
+                    loadOwners(data.owner_id);
+
+                    // Step 2: Provinces — await so district loads after
+                    const provincesRes  = await fetch('/api/v1/provinces');
+                    const provincesData = await provincesRes.json();
+                    populateSelect(province, provincesData, 'Select Province', data.province_id);
+
+                    // Step 3: Districts for selected province
+                    if (data.province_id) {
+                        const districtsRes  = await fetch(`/api/v1/districts/${data.province_id}`);
+                        const districtsData = await districtsRes.json();
+                        populateSelect(district, districtsData, 'Select District', data.district_id);
+                    }
+
+                    // Step 4: Cities for selected district
+                    if (data.district_id) {
+                        const citiesRes  = await fetch(`/api/v1/cities/${data.district_id}`);
+                        const citiesData = await citiesRes.json();
+                        populateSelect(city, citiesData, 'Select City', data.city_id);
+                    }
+
+                    // Release flag — user changes now work normally
+                    isEditInitializing = false;
+
+                    new bootstrap.Modal(document.getElementById('editFarmModal')).show();
                 });
             });
         });
