@@ -26,6 +26,18 @@
 
         <div class="container-fluid">
             <div class="row mb-3">
+                @if (session('error'))
+                <div class="alert alert-danger d-flex align-items-center justify-content-between" role="alert">
+                    <div>
+                        <i class="feather-alert-circle flex-shrink-0 me-2"></i>
+                        {{ session('error') }}
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                        <i class="fas fa-xmark"></i>
+                    </button>
+                </div>
+                @endif
+
                 @if (session('success'))
                 <div class="alert alert-success d-flex align-items-center justify-content-between" role="alert">
                     <div>
@@ -122,6 +134,19 @@
                                            data-role-name="{{ $role->name }}">
                                             <i class="ti ti-edit"></i>
                                         </a>
+                                        @role('admin')
+                                        <a href="javascript:void(0)"
+                                           class="d-flex align-items-center p-2 border rounded text-danger delete-role"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top"
+                                           title=""
+                                           data-bs-original-title="Delete Role"
+                                           data-role-id="{{ $role->id }}"
+                                           data-role-name="{{ ucfirst($role->name) }}"
+                                           data-delete-url="{{ route('roles.destroy', $role) }}">
+                                            <i class="ti ti-trash"></i>
+                                        </a>
+                                        @endrole
                                     </div>
                                 </td>
                             </tr>
@@ -199,6 +224,12 @@
         </div>
     </div>
 
+    <!-- Delete Role Form (hidden) -->
+    <form id="deleteRoleForm" action="" method="POST" style="display:none;">
+        @csrf
+        @method('DELETE')
+    </form>
+
     <!-- Attach Users Modal -->
     <div class="modal fade" id="attachUsersModal" tabindex="-1" aria-labelledby="attachUsersModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg">
@@ -274,6 +305,22 @@
                     },
                     error: function() {
                         $('#attachUsersModal .modal-body').html('<div class="alert alert-danger">Failed to load users.</div>');
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.delete-role').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var roleName = this.getAttribute('data-role-name');
+                    var deleteUrl = this.getAttribute('data-delete-url');
+
+                    if (confirm('Are you sure you want to delete the role "' + roleName + '"?\n\nThis action cannot be undone.')) {
+                        var form = document.getElementById('deleteRoleForm');
+                        form.action = deleteUrl;
+                        form.submit();
                     }
                 });
             });

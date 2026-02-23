@@ -50,14 +50,19 @@
                                     <label class="form-label text-white-50" for="loginPassword">Password</label>
                                     <a href="/forget-password" class="small text-white-50">Forgot Password?</a>
                                 </div>
-                                <input type="password" id="loginPassword" name="password"
-                                       class="form-control @error('password') is-invalid @enderror"
-                                       placeholder="********" required>
-                                @error('password')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
+                                <div class="input-group">
+                                    <input type="password" id="loginPassword" name="password"
+                                           class="form-control @error('password') is-invalid @enderror"
+                                           placeholder="********" required>
+                                    <button type="button" class="text-white-50 btn btn-outline-secondary" id="togglePassword" tabindex="-1">
+                                        <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                    </button>
+                                    @error('password')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                    @enderror
                                 </div>
-                                @enderror
                             </div>
                             <div class="col-12 d-flex justify-content-between align-items-center">
                                 <div class="form-check">
@@ -142,6 +147,18 @@
             passwordInput.value = savedPassword;
             rememberMeCheckbox.checked = true;
         }
+
+        // Password visibility toggle
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const icon = document.getElementById('togglePasswordIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        });
 
         // Handle form submission
         loginForm.addEventListener('submit', function(e) {

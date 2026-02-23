@@ -54,7 +54,18 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        // Roles cannot be deleted
+        if ($role->users()->count() > 0) {
+            return redirect()
+                ->route('roles.index')
+                ->with('error', 'Role "' . ucfirst($role->name) . '" cannot be deleted because it has ' . $role->users()->count() . ' user(s) attached to it. Please reassign those users before deleting this role.');
+        }
+
+        $roleName = ucfirst($role->name);
+        $role->delete();
+
+        return redirect()
+            ->route('roles.index')
+            ->with('success', 'Role "' . $roleName . '" has been deleted successfully.');
     }
 
     public function getPermissions(Role $role)

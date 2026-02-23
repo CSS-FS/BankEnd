@@ -73,16 +73,26 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-white-50" for="registerPassword">Password</label>
-                                <input type="password" id="registerPassword" name="password"
-                                       class="form-control @error('password') is-invalid @enderror"
-                                       placeholder="********"
-                                       required>
+                                <div class="input-group">
+                                    <input type="password" id="registerPassword" name="password"
+                                           class="form-control @error('password') is-invalid @enderror"
+                                           placeholder="********"
+                                           required>
+                                    <button type="button" class="btn btn-outline-secondary text-white-50 toggle-password" data-target="registerPassword" tabindex="-1">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-white-50" for="registerConfirm">Confirm Password</label>
-                                <input type="password" id="registerConfirm" name="password_confirmation"
-                                       class="form-control"
-                                       placeholder="********" required>
+                                <div class="input-group">
+                                    <input type="password" id="registerConfirm" name="password_confirmation"
+                                           class="form-control"
+                                           placeholder="********" required>
+                                    <button type="button" class="btn btn-outline-secondary text-white-50 toggle-password" data-target="registerConfirm" tabindex="-1">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="col-12">
                                 <div class="progress" role="progressbar" aria-label="Password strength" aria-valuemin="0" aria-valuemax="100">
@@ -247,5 +257,20 @@
             passwordInput.addEventListener('input', update);
         }
     })();
+</script>
+<script>
+    document.querySelectorAll('.toggle-password').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const input = document.getElementById(this.getAttribute('data-target'));
+            const icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        });
+    });
 </script>
 @endpush
