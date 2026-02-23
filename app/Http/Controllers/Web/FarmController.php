@@ -78,14 +78,17 @@ class FarmController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'province_id' => 'nullable|exists:pakistan_provinces,id',
-            'district_id' => 'nullable|exists:pakistan_districts,id',
-            'city_id' => 'nullable|exists:pakistan_tehsils,id',
-            'address' => 'required|string|max:500',
-            'owner_id' => 'nullable|exists:users,id',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
+            'name'           => 'required|string|max:255',
+            'province_id'    => 'nullable|exists:pakistan_provinces,id',
+            'district_id'    => 'nullable|exists:pakistan_districts,id',
+            'city_id'        => 'nullable|exists:pakistan_tehsils,id',
+            'address'        => 'required|string|max:500',
+            'owner_id'       => 'nullable|exists:users,id',
+            'country'        => 'required|string|max:100',
+            'phone_number'   => 'nullable|digits_between:1,11',
+            'contact_person' => 'nullable|string|max:50',
+            'alerts'         => 'nullable|boolean',
+            'notifications'  => 'nullable|boolean',
         ]);
 
         // Force owner_id for owner role
@@ -94,6 +97,9 @@ class FarmController extends Controller
         } elseif (! isset($validated['owner_id'])) {
             $validated['owner_id'] = $user->id;
         }
+
+        $validated['alerts']        = $request->boolean('alerts');
+        $validated['notifications'] = $request->boolean('notifications');
 
         $farm = Farm::create($validated);
 
@@ -130,15 +136,21 @@ class FarmController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'province_id' => 'nullable|exists:pakistan_provinces,id',
-            'district_id' => 'nullable|exists:pakistan_districts,id',
-            'city_id' => 'nullable|exists:pakistan_tehsils,id',
-            'address' => 'required|string|max:500',
-            'owner_id' => 'required|exists:users,id',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
+            'name'           => 'required|string|max:255',
+            'province_id'    => 'nullable|exists:pakistan_provinces,id',
+            'district_id'    => 'nullable|exists:pakistan_districts,id',
+            'city_id'        => 'nullable|exists:pakistan_tehsils,id',
+            'address'        => 'required|string|max:500',
+            'owner_id'       => 'required|exists:users,id',
+            'country'        => 'required|string|max:100',
+            'phone_number'   => 'nullable|digits_between:1,11',
+            'contact_person' => 'nullable|string|max:50',
+            'alerts'         => 'nullable|boolean',
+            'notifications'  => 'nullable|boolean',
         ]);
+
+        $validated['alerts']        = $request->boolean('alerts');
+        $validated['notifications'] = $request->boolean('notifications');
 
         $farm->update($validated);
 

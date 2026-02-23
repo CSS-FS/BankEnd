@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Exports\ParameterDataExport;
 use App\Http\Controllers\ApiController;
 use App\Http\Resources\SensorDataResource;
 use App\Models\Device;
@@ -10,14 +11,18 @@ use App\Models\IotDataLog;
 use App\Models\Shed;
 use App\Models\ShedDevice;
 use App\Services\DynamoDbService;
+use App\Services\IotAlertService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SensorDataController extends ApiController
 {
-    public function __construct(protected DynamoDbService $dynamoDbService)
-    {
+    public function __construct(
+        protected DynamoDbService $dynamoDbService,
+        protected IotAlertService $alertService
+    ) {
         parent::__construct();
     }
 
@@ -56,6 +61,9 @@ class SensorDataController extends ApiController
 
         // ✅ Store in DynamoDB
         $this->dynamoDbService->putSensorData($sensorData);
+
+        // 🚨 Check for parameter alerts
+        $this->checkParameterAlerts($device->id, $sensorData);
 
         return response()->json(['message' => 'Sensor data stored successfully.'], 201);
     }
@@ -112,6 +120,9 @@ class SensorDataController extends ApiController
         // 💾 Store in DynamoDB
         $this->dynamoDbService->putSensorData($sensorData);
 
+        // 🚨 Check for parameter alerts
+        $this->checkParameterAlerts($device->id, $sensorData);
+
         return response()->json([
             'message' => 'Device appliances updated and sensor data stored successfully.',
         ], 201);
@@ -143,6 +154,9 @@ class SensorDataController extends ApiController
 
         // ✅ Store in DynamoDB
         $this->dynamoDbService->putSensorData($sensorData);
+
+        // 🚨 Check for parameter alerts
+        $this->checkParameterAlerts($device->id, $sensorData);
 
         return response()->json(['message' => 'Sensor data stored successfully.'], 201);
     }
@@ -184,6 +198,9 @@ class SensorDataController extends ApiController
 
                 Log::info("[storeMultiple] Storing sensor data for record #$idx", $dynamoSensorData);
                 $this->dynamoDbService->putSensorData($dynamoSensorData);
+
+                // 🚨 Check for parameter alerts
+                $this->checkParameterAlerts($device->id, $dynamoSensorData);
             } else {
                 Log::info("[storeMultiple] No sensor fields in record #$idx");
             }
@@ -433,5 +450,347 @@ class SensorDataController extends ApiController
             'month' => now()->subMonth()->timestamp,
             default => null,
         };
+    }
+
+    /**
+     * Fetch parameter-specific data with statistics and chart data
+     */
+    public function fetchParameterData(Request $request, int $shedId, string $parameter)
+    {
+        $validated = $request->validate([
+            'time_range' => 'nullable|in:24hour,last_week,current_month,custom',
+            'from' => 'required_if:time_range,custom|date',
+            'to' => 'required_if:time_range,custom|date|after_or_equal:from',
+        ]);
+
+        // Map parameter aliases to actual database parameter names
+        $parameterMapping = [
+            'temperature' => 'temp1', // Default to temp1 when "temperature" is requested
+            'ammonia' => 'nh3',
+        ];
+
+        $dbParameter = $parameterMapping[$parameter] ?? $parameter;
+
+        $shed = Shed::findOrFail($shedId);
+        $deviceIds = ShedDevice::where('shed_id', $shedId)->pluck('device_id')->toArray();
+
+        if (empty($deviceIds)) {
+            return response()->json([
+                'parameter' => $parameter,
+                'current_value' => null,
+                'unit' => null,
+                'statistics' => ['min' => null, 'average' => null, 'max' => null],
+                'chart_data' => [],
+                'alert_thresholds' => null,
+            ], 200);
+        }
+
+        // Determine time range
+        $timeRange = $validated['time_range'] ?? '24hour';
+        if ($timeRange === 'custom') {
+            $from = Carbon::parse($validated['from'])->startOfDay();
+            $to = Carbon::parse($validated['to'])->endOfDay();
+        } else {
+            $to = Carbon::now();
+            $from = match ($timeRange) {
+                '24hour' => Carbon::now()->subDay(),
+                'last_week' => Carbon::now()->subWeek(),
+                'current_month' => Carbon::now()->startOfMonth(),
+                default => Carbon::now()->subDay(),
+            };
+        }
+
+        // Fetch aggregated data from iot_data_logs
+        $logs = IotDataLog::whereIn('device_id', $deviceIds)
+            ->where('parameter', $dbParameter)
+            ->whereBetween('record_time', [$from, $to])
+            ->orderBy('record_time', 'asc')
+            ->get();
+
+        // Calculate overall statistics
+        $minValue = $logs->min('min_value');
+        $maxValue = $logs->max('max_value');
+        $avgValue = $logs->avg('avg_value');
+
+        // Get current/latest value
+        $latestLog = IotDataLog::whereIn('device_id', $deviceIds)
+            ->where('parameter', $dbParameter)
+            ->where('time_window', 'latest')
+            ->orderBy('record_time', 'desc')
+            ->first();
+
+        $currentValue = $latestLog ? $latestLog->avg_value : null;
+
+        // Prepare chart data
+        $chartData = $logs->map(function ($log) {
+            return [
+                'timestamp' => Carbon::parse($log->record_time)->format('Y-m-d H:i:s'),
+                'value' => $log->avg_value,
+                'min' => $log->min_value,
+                'max' => $log->max_value,
+            ];
+        })->values()->toArray();
+
+        // Get alert thresholds
+        $limit = \App\Models\ShedParameterLimit::where('shed_id', $shedId)
+            ->where('parameter_name', $parameter)
+            ->first();
+
+        $alertThresholds = $limit ? [
+            'high' => $limit->max_value,
+            'low' => $limit->min_value,
+        ] : null;
+
+        // Get unit from limit or default
+        $unit = $limit ? $limit->unit : $this->getDefaultUnit($parameter);
+
+        return response()->json([
+            'parameter' => $parameter,
+            'current_value' => $currentValue,
+            'unit' => $unit,
+            'statistics' => [
+                'min' => $minValue,
+                'average' => round($avgValue, 2),
+                'max' => $maxValue,
+            ],
+            'chart_data' => $chartData,
+            'alert_thresholds' => $alertThresholds,
+        ]);
+    }
+
+    /**
+     * Export parameter data to Excel
+     */
+    public function exportParameterExcel(Request $request, int $shedId, string $parameter)
+    {
+        $validated = $request->validate([
+            'time_range' => 'nullable|in:24hour,last_week,current_month,custom',
+            'from' => 'required_if:time_range,custom|date',
+            'to' => 'required_if:time_range,custom|date|after_or_equal:from',
+        ]);
+
+        // Map parameter aliases
+        $parameterMapping = [
+            'temperature' => 'temp1',
+            'ammonia' => 'nh3',
+        ];
+        $dbParameter = $parameterMapping[$parameter] ?? $parameter;
+
+        $shed = Shed::findOrFail($shedId);
+        $deviceIds = ShedDevice::where('shed_id', $shedId)->pluck('device_id')->toArray();
+
+        if (empty($deviceIds)) {
+            return response()->json([
+                'message' => 'No devices found for this shed',
+            ], 404);
+        }
+
+        // Determine time range
+        $timeRange = $validated['time_range'] ?? '24hour';
+        if ($timeRange === 'custom') {
+            $from = Carbon::parse($validated['from'])->startOfDay();
+            $to = Carbon::parse($validated['to'])->endOfDay();
+        } else {
+            $to = Carbon::now();
+            $from = match ($timeRange) {
+                '24hour' => Carbon::now()->subDay(),
+                'last_week' => Carbon::now()->subWeek(),
+                'current_month' => Carbon::now()->startOfMonth(),
+                default => Carbon::now()->subDay(),
+            };
+        }
+
+        // Fetch data from iot_data_logs
+        $logs = IotDataLog::whereIn('device_id', $deviceIds)
+            ->where('parameter', $dbParameter)
+            ->whereBetween('record_time', [$from, $to])
+            ->orderBy('record_time', 'asc')
+            ->get();
+
+        // Prepare data for export
+        $exportData = $logs->map(function ($log) {
+            return [
+                'timestamp' => Carbon::parse($log->record_time)->format('Y-m-d H:i:s'),
+                'value' => $log->avg_value,
+                'min' => $log->min_value,
+                'max' => $log->max_value,
+            ];
+        });
+
+        // Get unit
+        $limit = \App\Models\ShedParameterLimit::where('shed_id', $shedId)
+            ->where('parameter_name', $parameter)
+            ->first();
+        $unit = $limit ? $limit->unit : $this->getDefaultUnit($parameter);
+
+        // Generate filename
+        $filename = sprintf(
+            '%s_%s_data_%s.xlsx',
+            str_replace(' ', '_', $shed->name),
+            $parameter,
+            Carbon::now()->format('Y-m-d_His')
+        );
+
+        return Excel::download(
+            new ParameterDataExport($shed, $parameter, $exportData, $unit),
+            $filename
+        );
+    }
+
+    /**
+     * Export parameter data to PDF
+     */
+    public function exportParameterPdf(Request $request, int $shedId, string $parameter)
+    {
+        $validated = $request->validate([
+            'time_range' => 'nullable|in:24hour,last_week,current_month,custom',
+            'from' => 'required_if:time_range,custom|date',
+            'to' => 'required_if:time_range,custom|date|after_or_equal:from',
+        ]);
+
+        // Map parameter aliases
+        $parameterMapping = [
+            'temperature' => 'temp1',
+            'ammonia' => 'nh3',
+        ];
+        $dbParameter = $parameterMapping[$parameter] ?? $parameter;
+
+        $shed = Shed::findOrFail($shedId);
+        $deviceIds = ShedDevice::where('shed_id', $shedId)->pluck('device_id')->toArray();
+
+        if (empty($deviceIds)) {
+            return response()->json([
+                'message' => 'No devices found for this shed',
+            ], 404);
+        }
+
+        // Determine time range
+        $timeRange = $validated['time_range'] ?? '24hour';
+        if ($timeRange === 'custom') {
+            $from = Carbon::parse($validated['from'])->startOfDay();
+            $to = Carbon::parse($validated['to'])->endOfDay();
+        } else {
+            $to = Carbon::now();
+            $from = match ($timeRange) {
+                '24hour' => Carbon::now()->subDay(),
+                'last_week' => Carbon::now()->subWeek(),
+                'current_month' => Carbon::now()->startOfMonth(),
+                default => Carbon::now()->subDay(),
+            };
+        }
+
+        // Fetch data from iot_data_logs
+        $logs = IotDataLog::whereIn('device_id', $deviceIds)
+            ->where('parameter', $dbParameter)
+            ->whereBetween('record_time', [$from, $to])
+            ->orderBy('record_time', 'asc')
+            ->get();
+
+        // Get statistics
+        $minValue = $logs->min('min_value');
+        $maxValue = $logs->max('max_value');
+        $avgValue = $logs->avg('avg_value');
+
+        // Get unit and alert thresholds
+        $limit = \App\Models\ShedParameterLimit::where('shed_id', $shedId)
+            ->where('parameter_name', $parameter)
+            ->first();
+        $unit = $limit ? $limit->unit : $this->getDefaultUnit($parameter);
+
+        // Prepare data
+        $exportData = $logs->map(function ($log) {
+            return [
+                'timestamp' => Carbon::parse($log->record_time)->format('Y-m-d H:i:s'),
+                'value' => $log->avg_value,
+                'min' => $log->min_value,
+                'max' => $log->max_value,
+            ];
+        });
+
+        // Generate HTML for PDF
+        $html = view('exports.parameter-data-pdf', [
+            'shed' => $shed,
+            'parameter' => $parameter,
+            'unit' => $unit,
+            'logs' => $exportData,
+            'statistics' => [
+                'min' => $minValue,
+                'avg' => round($avgValue, 2),
+                'max' => $maxValue,
+            ],
+            'alert_thresholds' => $limit ? [
+                'high' => $limit->max_value,
+                'low' => $limit->min_value,
+            ] : null,
+            'time_range' => $timeRange,
+            'from' => $from->format('Y-m-d'),
+            'to' => $to->format('Y-m-d'),
+        ])->render();
+
+        // Generate filename
+        $filename = sprintf(
+            '%s_%s_data_%s.pdf',
+            str_replace(' ', '_', $shed->name),
+            $parameter,
+            Carbon::now()->format('Y-m-d_His')
+        );
+
+        return response()->streamDownload(function () use ($html) {
+            echo $html;
+        }, $filename, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    /**
+     * Get default unit for parameter
+     */
+    private function getDefaultUnit(string $parameter): string
+    {
+        return match (strtolower($parameter)) {
+            'temperature', 'temp1', 'temp2' => '°C',
+            'humidity' => '%',
+            'co2', 'carbon_dioxide' => 'ppm',
+            'ammonia' => 'ppm',
+            'electricity' => 'kWh',
+            default => '',
+        };
+    }
+
+    /**
+     * Check sensor data against parameter thresholds and trigger alerts
+     */
+    private function checkParameterAlerts(int $deviceId, array $sensorData): void
+    {
+        // Get shed_id for this device
+        $shedId = ShedDevice::where('device_id', $deviceId)
+            ->where('is_active', true)
+            ->value('shed_id');
+
+        if (!$shedId) {
+            Log::info("[checkParameterAlerts] Device {$deviceId} not linked to any active shed, skipping alert check.");
+            return;
+        }
+
+        // Define monitored parameters (exclude device_id and timestamp)
+        $monitoredParams = ['temperature', 'temp1', 'temp2', 'humidity', 'co2', 'ammonia', 'nh3'];
+
+        // Check each parameter in the sensor data
+        foreach ($sensorData as $param => $value) {
+            // Skip non-parameter fields
+            if (in_array(strtolower($param), ['device_id', 'timestamp'])) {
+                continue;
+            }
+
+            // Only check if it's a monitored parameter and value is numeric
+            if (in_array(strtolower($param), $monitoredParams) && is_numeric($value)) {
+                $this->alertService->checkParameterThreshold(
+                    $shedId,
+                    $deviceId,
+                    $param,
+                    (float) $value
+                );
+            }
+        }
     }
 }
