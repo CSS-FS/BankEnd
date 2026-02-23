@@ -171,9 +171,9 @@ class FarmController extends Controller
             ->with('success', 'Farm has been deleted successfully.');
     }
 
-    public function farmData($farmId)
+    public function farmData($farmId, Request $request)
     {
-        $farm = Farm::with('owner', 'sheds.latestFlocks.breed')
+        $farm = Farm::with('owner', 'sheds.latestFlocks.breed', 'sheds.latestFlock')
             ->find($farmId);
 
         $types = [
@@ -184,9 +184,11 @@ class FarmController extends Controller
             'hatchery',
         ];
 
+        $context = $request->query('context', 'default');
+
         $view = view(
             'admin.farms.farm_card',
-            compact('farm', 'types')
+            compact('farm', 'types', 'context')
         )->render();
 
         return response()->json(['html' => $view]);

@@ -46,10 +46,13 @@ class ClientController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'string', 'min:8', 'regex:/[A-Z]/', 'regex:/[a-z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
             'phone' => 'required|string|max:20|unique:users',
             'role' => 'required|string|exists:roles,name',
             'file' => 'nullable|mimes:jpeg,jpg,png|max:2000',
+        ], [
+            'password.min'   => 'Password must be at least 8 characters.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
         ]);
 
         $user = User::create([
@@ -128,6 +131,7 @@ class ClientController extends Controller
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
             'role' => 'required|string|exists:roles,name',
+            'is_active' => 'nullable|boolean',
             'file' => 'nullable|mimes:jpeg,jpg,png|max:2000',
         ]);
 
@@ -135,6 +139,7 @@ class ClientController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'],
+            'is_active' => $request->has('is_active') ? 1 : 0,
         ]);
 
         $user->syncRoles($validated['role']);

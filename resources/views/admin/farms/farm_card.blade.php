@@ -1,3 +1,6 @@
+@php $isModal = isset($context) && $context === 'modal'; @endphp
+
+@if(!$isModal)
 <div class="card">
     <div class="card-header">
         <div class="card-title d-flex justify-content-between align-items-center">
@@ -8,6 +11,8 @@
         </div>
     </div>
     <div class="card-body">
+@endif
+
         <div class="row">
             <div class="col-md-3">
                 <ul class="nav nav-tabs flex-column vertical-tabs-2" role="tablist">
@@ -81,8 +86,11 @@
                 </div>
             </div>
         </div>
+
+@if(!$isModal)
     </div>
 </div>
+@endif
 
 <!-- Add Shed Modal -->
 <div class="modal fade" id="addShedModal" tabindex="-1" aria-labelledby="addShedModalLabel" aria-hidden="true" data-bs-backdrop="static">

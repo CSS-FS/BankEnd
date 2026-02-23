@@ -101,7 +101,7 @@
                             <th>Email</th>
                             <th>Contact No</th>
                             <th>Roles</th>
-                            <th>Farms Attached</th>
+                            <th>Farms</th>
                             <th>Status</th>
                             <th class="no-sort"></th>
                         </tr>
@@ -132,14 +132,17 @@
                                 </td>
                                 <td>
                                 @forelse($user->farms as $farm)
-                                    <span class="badge bg-success-transparent">{{ $farm->name }}</span>
+                                    <a href="javascript:void(0);" class="badge bg-success-transparent text-decoration-none farm-info-link fs-10"
+                                       data-farm-id="{{ $farm->id }}" data-farm-name="{{ $farm->name }}">{{ $farm->name }}</a>
                                 @empty
-                                    @if($user->managedFarms->Count() > 0)
-                                       <span class="badge bg-success-transparent">{{ $user->managedFarms->first()->name }}</span>
+                                    @if($user->managedFarms->count() > 0)
+                                        @foreach($user->managedFarms as $farm)
+                                            <a href="javascript:void(0);" class="badge bg-success-transparent text-decoration-none farm-info-link fs-10"
+                                               data-farm-id="{{ $farm->id }}" data-farm-name="{{ $farm->name }}">{{ $farm->name }}</a>
+                                        @endforeach
                                     @else
                                        <span class="text-danger fs-10">No Farm Attached</span>
                                     @endif
-
                                 @endforelse
                                 </td>
                                 <td>
@@ -260,23 +263,19 @@
 
                                 <div class="mb-3">
                                     <label class="form-label">Password<span class="text-danger ms-1">*</span></label>
-                                    <div class="pass-group">
-                                        <input type="password" class="pass-input form-control" id="password" name="password" required>
-                                        <i class="ti ti-eye-off toggle-password"></i>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="password" name="password" required
+                                               placeholder="Enter password">
+                                        <button type="button" class="btn btn-outline-secondary" id="toggleAddPassword" tabindex="-1">
+                                            <i class="ti ti-eye" id="toggleAddPasswordIcon"></i>
+                                        </button>
                                     </div>
+                                    <div class="progress mt-2" style="height: 6px;">
+                                        <div id="addPasswordStrengthBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%; transition: width 0.3s;"></div>
+                                    </div>
+                                    <p id="addPasswordStrengthText" class="small text-muted mt-1 mb-0">Strength: enter a password</p>
                                     <div class="invalid-feedback">
-                                        Password must be provided.
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Confirm Password<span class="text-danger ms-1">*</span></label>
-                                    <div class="pass-group">
-                                        <input type="password" class="pass-input form-control" id="password_confirmation" name="password_confirmation" required>
-                                        <i class="ti ti-eye-off toggle-password"></i>
-                                    </div>
-                                    <div class="invalid-feedback">
-                                        Password needs to be confirmed.
+                                        Password must be at least 8 characters with uppercase, lowercase, number, and special character.
                                     </div>
                                 </div>
                             </div>
@@ -362,6 +361,20 @@
                                         Valid phone no. of user must be provided.
                                     </div>
                                 </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Account Status</label>
+                                    <div id="statusToggleWrapper" class="d-flex align-items-center gap-3 p-3 rounded-3 border" style="transition: background 0.3s;">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                   id="edit-is-active" name="is_active" value="1" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                                        </div>
+                                        <div>
+                                            <div id="statusLabel" class="fw-semibold fs-14"></div>
+                                            <div id="statusDescription" class="fs-12 text-muted mt-1"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -404,9 +417,84 @@
         </div>
     </div>
 
+    <!-- Farm Info Modal -->
+    <div class="modal fade" id="farmInfoModal" tabindex="-1" aria-labelledby="farmInfoModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="farmInfoModalLabel">
+                        <i class="ti ti-building me-2 text-primary"></i>
+                        <span id="farmInfoModalTitle">Farm Information</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="farmInfoModalBody">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-success"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle for Add User modal
+            document.getElementById('toggleAddPassword').addEventListener('click', function() {
+                const input = document.getElementById('password');
+                const icon = document.getElementById('toggleAddPasswordIcon');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.replace('ti-eye', 'ti-eye-off');
+                } else {
+                    input.type = 'password';
+                    icon.classList.replace('ti-eye-off', 'ti-eye');
+                }
+            });
+
+            // Password strength meter for Add User modal
+            document.getElementById('password').addEventListener('input', function() {
+                const pw = this.value;
+                const bar = document.getElementById('addPasswordStrengthBar');
+                const text = document.getElementById('addPasswordStrengthText');
+                const checks = {
+                    length: pw.length >= 8,
+                    upper: /[A-Z]/.test(pw),
+                    lower: /[a-z]/.test(pw),
+                    number: /[0-9]/.test(pw),
+                    symbol: /[^A-Za-z0-9]/.test(pw),
+                };
+                const score = Object.values(checks).filter(Boolean).length;
+                const pct = (score / 5) * 100;
+
+                bar.style.width = pct + '%';
+                bar.classList.remove('bg-danger', 'bg-warning', 'bg-success');
+
+                if (pw.length === 0) {
+                    bar.style.width = '0%';
+                    text.textContent = 'Strength: enter a password';
+                } else if (score <= 2) {
+                    bar.classList.add('bg-danger');
+                    text.textContent = 'Strength: weak';
+                } else if (score <= 3) {
+                    bar.classList.add('bg-warning');
+                    text.textContent = 'Strength: fair';
+                } else if (score === 4) {
+                    bar.classList.add('bg-warning');
+                    text.textContent = 'Strength: good';
+                } else {
+                    bar.classList.add('bg-success');
+                    text.textContent = 'Strength: strong';
+                }
+            });
+        });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const input = document.getElementById('profileImageInput');
@@ -489,6 +577,29 @@
             }
         };
 
+        // Status toggle UI helper
+        function updateStatusUI(isActive) {
+            const wrapper = document.getElementById('statusToggleWrapper');
+            const label   = document.getElementById('statusLabel');
+            const desc    = document.getElementById('statusDescription');
+
+            if (isActive) {
+                wrapper.style.background = 'rgba(var(--bs-success-rgb), 0.07)';
+                wrapper.style.borderColor = 'var(--bs-success)';
+                label.innerHTML = '<i class="ti ti-circle-check text-success me-1"></i><span class="text-success">Active</span>';
+                desc.textContent = 'User can log in and access the system normally.';
+            } else {
+                wrapper.style.background = 'rgba(var(--bs-danger-rgb), 0.07)';
+                wrapper.style.borderColor = 'var(--bs-danger)';
+                label.innerHTML = '<i class="ti ti-ban text-danger me-1"></i><span class="text-danger">Blocked</span>';
+                desc.textContent = 'User is blocked and cannot log in or access any features.';
+            }
+        }
+
+        document.getElementById('edit-is-active').addEventListener('change', function() {
+            updateStatusUI(this.checked);
+        });
+
         // Show and populate edit modal
         function showEditUserModal(userId) {
             // Clear previous state
@@ -515,8 +626,13 @@
                         document.getElementById('editProfilePicPlaceholder').classList.add('d-none');
                     }
 
-                    const roleName = (user.roles && user.roles[0]) ? user.roles[0].name : null; // use id
+                    const roleName = (user.roles && user.roles[0]) ? user.roles[0].name : null;
                     $('#edit-role').val(roleName).trigger('change');
+
+                    // Populate status toggle
+                    const toggle = document.getElementById('edit-is-active');
+                    toggle.checked = user.is_active == 1;
+                    updateStatusUI(toggle.checked);
 
                     $('#editUserForm').attr('action', '/admin/clients/' + user.id);
                     $('#editUserModal').modal('show');
@@ -565,6 +681,60 @@
             $('.edit-select').select2({
                 dropdownParent: $('#editUserModal'), // ensures it works inside Bootstrap modal
                 width: '100%'
+            });
+
+            // Reset Add User modal to empty state every time it is closed
+            document.getElementById('addUserModal').addEventListener('hidden.bs.modal', function() {
+                this.querySelector('form').reset();
+
+                // Reset profile pic preview
+                const previewDiv = document.getElementById('profilePicPreview');
+                const img = previewDiv.querySelector('img');
+                if (img) img.remove();
+                previewDiv.querySelector('span').style.display = '';
+
+                // Reset password strength bar
+                const bar = document.getElementById('addPasswordStrengthBar');
+                const text = document.getElementById('addPasswordStrengthText');
+                if (bar) { bar.style.width = '0%'; bar.classList.remove('bg-danger', 'bg-warning', 'bg-success'); }
+                if (text) text.textContent = 'Strength: enter a password';
+
+                // Reset password field to type password and icon
+                const pwInput = document.getElementById('password');
+                const pwIcon = document.getElementById('toggleAddPasswordIcon');
+                if (pwInput) pwInput.type = 'password';
+                if (pwIcon) { pwIcon.classList.remove('ti-eye-off'); pwIcon.classList.add('ti-eye'); }
+            });
+
+            // Farm info modal
+            document.querySelectorAll('.farm-info-link').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    const farmId = this.getAttribute('data-farm-id');
+                    const farmName = this.getAttribute('data-farm-name');
+
+                    document.getElementById('farmInfoModalTitle').textContent = farmName;
+                    document.getElementById('farmInfoModalBody').innerHTML =
+                        '<div class="text-center py-5"><div class="spinner-border text-success"></div></div>';
+
+                    var modal = new bootstrap.Modal(document.getElementById('farmInfoModal'));
+                    modal.show();
+
+                    fetch('/admin/farms/' + farmId + '/data?context=modal')
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('farmInfoModalBody').innerHTML = data.html;
+                        })
+                        .catch(() => {
+                            document.getElementById('farmInfoModalBody').innerHTML =
+                                '<div class="alert alert-danger">Failed to load farm information.</div>';
+                        });
+                });
+            });
+
+            // Clear farm modal body on close to avoid stale content
+            document.getElementById('farmInfoModal').addEventListener('hidden.bs.modal', function() {
+                document.getElementById('farmInfoModalBody').innerHTML =
+                    '<div class="text-center py-5"><div class="spinner-border text-success"></div></div>';
             });
         });
     </script>
