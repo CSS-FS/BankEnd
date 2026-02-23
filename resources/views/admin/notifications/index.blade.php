@@ -11,6 +11,13 @@
                     <h6>View all your notifications.</h6>
                 </div>
             </div>
+            <ul class="table-top-head">
+                <li>
+                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header">
+                        <i class="ti ti-chevron-up"></i>
+                    </a>
+                </li>
+            </ul>
             <div class="page-btn">
                 <form action="{{ route('notifications.mark-all-read') }}" method="POST" style="display: inline;">
                     @csrf
@@ -38,16 +45,31 @@
         </div>
 
         <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                <div class="search-set">
+                    <div class="search-input">
+                        <span class="btn-searchset"><i class="ti ti-search fs-14 feather-search"></i></span>
+                    </div>
+                </div>
+                <div class="d-flex my-xl-auto right-content align-items-center row-gap-3">
+                    <select id="typeFilter" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="Report">Report</option>
+                        <option value="Alert">Alert</option>
+                        <option value="Info">Info</option>
+                    </select>
+                </div>
+            </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table">
+                    <table class="table datatable-custom">
                         <thead class="thead-light">
                         <tr>
-                            <th style="width: 60px;">Status</th>
-                            <th style="width: 80px;">Type</th>
+                            <th class="text-center no-sort" style="width: 60px;">Status</th>
+                            <th class="text-center" style="width: 100px;">Type</th>
                             <th>Notification</th>
-                            <th style="width: 150px;">Date</th>
-                            <th style="width: 100px;" class="text-center">Action</th>
+                            <th class="text-center" style="width: 160px;">Date</th>
+                            <th class="text-center no-sort" style="width: 100px;">Action</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -56,15 +78,15 @@
                                 <td class="text-center">
                                     @if($notification->is_read)
                                         <span class="badge bg-soft-secondary text-dark border">
-                                            <i class="ti ti-check"></i>
+                                            <i class="ti ti-check"></i> Read
                                         </span>
                                     @else
                                         <span class="badge bg-soft-primary text-primary border">
-                                            <i class="ti ti-point-filled"></i>
+                                            <i class="ti ti-point-filled"></i> New
                                         </span>
                                     @endif
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     @if($notification->type === 'report_submitted')
                                         <span class="badge bg-soft-info text-dark border">
                                             <i class="ti ti-file-text me-1"></i>Report
@@ -81,12 +103,7 @@
                                 </td>
                                 <td>
                                     <div>
-                                        <h6 class="mb-1">
-                                            {{ $notification->title }}
-                                            @if(!$notification->is_read)
-                                                <span class="badge bg-primary badge-xs ms-1">New</span>
-                                            @endif
-                                        </h6>
+                                        <h6 class="mb-1">{{ $notification->title }}</h6>
                                         <p class="text-muted small mb-0">{{ $notification->message }}</p>
                                         @if($notification->farm)
                                             <small class="text-muted">
@@ -95,28 +112,29 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td>
-                                    <small class="text-muted">{{ $notification->created_at->format('M d, Y') }}</small>
-                                    <br>
-                                    <small class="text-muted">{{ $notification->created_at->format('h:i A') }}</small>
-                                    <br>
+                                <td class="text-center">
+                                    <small class="text-muted d-block">{{ $notification->created_at->format('d-m-Y') }}</small>
+                                    <small class="text-muted d-block">{{ $notification->created_at->format('h:i A') }}</small>
                                     <small class="text-primary">{{ $notification->created_at->diffForHumans() }}</small>
                                 </td>
-                                <td class="text-center">
-                                    @if(!$notification->is_read)
-                                        <form action="{{ route('notifications.mark-read', $notification) }}" method="POST" style="display: inline;">
-                                            @csrf
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-primary"
-                                                    data-bs-toggle="tooltip"
-                                                    data-bs-placement="top"
-                                                    title="Mark as read">
-                                                <i class="ti ti-check"></i>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
+                                <td class="text-center action-table-data">
+                                    <div class="action-icon d-inline-flex">
+                                        @if(!$notification->is_read)
+                                            <form action="{{ route('notifications.mark-read', $notification) }}" method="POST" style="display: inline;">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="d-flex align-items-center bg-danger p-2 border rounded"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-placement="top"
+                                                        title=""
+                                                        data-bs-original-title="Mark as Read">
+                                                    <i class="ti ti-check"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -131,20 +149,41 @@
                     </table>
                 </div>
             </div>
-            @if($notifications->hasPages())
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-0">
-                                Showing {{ $notifications->firstItem() }} to {{ $notifications->lastItem() }} of {{ $notifications->total() }} notifications
-                            </p>
-                        </div>
-                        <div>
-                            {{ $notifications->links() }}
-                        </div>
-                    </div>
-                </div>
-            @endif
         </div>
     </div>
 @endsection
+
+@push('js')
+    <script>
+        $(function() {
+            if ($('.datatable-custom').length > 0) {
+                var table = $('.datatable-custom').DataTable({
+                    "bFilter": true,
+                    "sDom": 'fBtlpi',
+                    "ordering": true,
+                    "order": [[3, 'desc']],
+                    "language": {
+                        search: ' ',
+                        sLengthMenu: '_MENU_',
+                        searchPlaceholder: "Search",
+                        sLengthMenu: 'Rows Per Page _MENU_ Entries',
+                        info: "_START_ - _END_ of _TOTAL_ items",
+                        paginate: {
+                            next: ' <i class="fa fa-angle-right"></i>',
+                            previous: '<i class="fa fa-angle-left"></i> '
+                        },
+                    },
+                    initComplete: (settings, json) => {
+                        $('.dataTables_filter').appendTo('#tableSearch');
+                        $('.dataTables_filter').appendTo('.search-input');
+                    },
+                });
+
+                $('#typeFilter').on('change', function() {
+                    var selected = $(this).val();
+                    table.column(1).search(selected).draw();
+                });
+            }
+        });
+    </script>
+@endpush

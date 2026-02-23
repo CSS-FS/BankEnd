@@ -288,13 +288,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin']], func
         Route::get('/download/{device}', 'download')->name('qr-code.download');
     });
 
-    // Notifications
-    Route::prefix('notifications')->controller(NotificationController::class)->group(function () {
-        Route::get('/', 'index')->name('notifications.index');
-        Route::post('/mark-all-read', 'markAllAsRead')->name('notifications.mark-all-read');
-        Route::post('/{notification}/mark-read', 'markAsRead')->name('notifications.mark-read');
-    });
-
     Route::controller(WebDeviceTokenController::class)->group(function () {
         Route::get('/device-tokens', 'index')
             ->middleware('can:device_tokens.view')
@@ -369,6 +362,13 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin|owner|ma
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    // Notifications
+    Route::prefix('notifications')->controller(NotificationController::class)->group(function () {
+        Route::get('/', 'index')->name('notifications.index');
+        Route::post('/mark-all-read', 'markAllAsRead')->name('notifications.mark-all-read');
+        Route::post('/{notification}/mark-read', 'markAsRead')->name('notifications.mark-read');
+    });
 
     Route::prefix('clients')->controller(ClientController::class)->group(function () {
         Route::get('/{user}', 'show')->name('clients.show');
