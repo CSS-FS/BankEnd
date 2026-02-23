@@ -182,8 +182,12 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-success">Save Role</button>
+                        <button type="submit" class="btn btn-success me-2">
+                            <i class="ti ti-device-floppy me-2"></i>Save Role
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="ti ti-x me-2"></i>Close
+                        </button>
                     </div>
                 </form>
             </div>
@@ -229,6 +233,33 @@
         @csrf
         @method('DELETE')
     </form>
+
+    <!-- Delete Role Confirmation Modal -->
+    <div class="modal fade" id="deleteRoleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="page-wrapper-new p-0">
+                    <div class="p-5 px-3 text-center">
+                        <span class="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
+                            <i class="ti ti-trash fs-24 text-danger"></i>
+                        </span>
+                        <h4 class="fs-20 fw-bold mb-2 mt-1">Delete Role</h4>
+                        <p class="mb-0 fs-16" id="delete-role-modal-message">
+                            Are you sure you want to delete this role?
+                        </p>
+                        <div class="modal-footer-btn mt-3 d-flex justify-content-center">
+                            <button type="button" class="btn btn-secondary fs-13 fw-medium p-2 px-3 me-2" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn btn-danger fs-13 fw-medium p-2 px-3" id="confirm-delete-role-btn">
+                                Yes Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Attach Users Modal -->
     <div class="modal fade" id="attachUsersModal" tabindex="-1" aria-labelledby="attachUsersModalLabel" aria-hidden="true" data-bs-backdrop="static">
@@ -312,17 +343,27 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            let pendingDeleteUrl = null;
+
             document.querySelectorAll('.delete-role').forEach(function(button) {
                 button.addEventListener('click', function() {
-                    var roleName = this.getAttribute('data-role-name');
-                    var deleteUrl = this.getAttribute('data-delete-url');
+                    const roleName  = this.getAttribute('data-role-name');
+                    pendingDeleteUrl = this.getAttribute('data-delete-url');
 
-                    if (confirm('Are you sure you want to delete the role "' + roleName + '"?\n\nThis action cannot be undone.')) {
-                        var form = document.getElementById('deleteRoleForm');
-                        form.action = deleteUrl;
-                        form.submit();
-                    }
+                    document.getElementById('delete-role-modal-message').textContent =
+                        `Are you sure you want to delete the role "${roleName}"?`;
+
+                    var modal = new bootstrap.Modal(document.getElementById('deleteRoleModal'));
+                    modal.show();
                 });
+            });
+
+            document.getElementById('confirm-delete-role-btn').addEventListener('click', function() {
+                if (pendingDeleteUrl) {
+                    var form = document.getElementById('deleteRoleForm');
+                    form.action = pendingDeleteUrl;
+                    form.submit();
+                }
             });
         });
     </script>

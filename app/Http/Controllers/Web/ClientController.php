@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Country;
 use App\Models\Province;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -23,10 +24,11 @@ class ClientController extends Controller
             'managedFarms',
         ])->get();
         $roles = Role::all();
+        $countries = Country::orderBy('country')->get();
 
         return view(
             'admin.users.index',
-            compact('users', 'roles')
+            compact('users', 'roles', 'countries')
         );
     }
 
@@ -47,11 +49,21 @@ class ClientController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users',
             'password' => ['required', 'string', 'min:8', 'regex:/[A-Z]/', 'regex:/[a-z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
-            'phone' => 'required|string|max:20|unique:users',
+            'phone' => [
+                'required', 'string', 'unique:users',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->input('phone_country') === 'PK') {
+                        if (! preg_match('/^\d{11}$/', $value)) {
+                            $fail('Pakistani phone number must be exactly 11 numeric digits (e.g. 03001234567).');
+                        }
+                    }
+                },
+            ],
+            'phone_country' => 'required|string|size:2',
             'role' => 'required|string|exists:roles,name',
             'file' => 'nullable|mimes:jpeg,jpg,png|max:2000',
         ], [
-            'password.min'   => 'Password must be at least 8 characters.',
+            'password.min' => 'Password must be at least 8 characters.',
             'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
         ]);
 
@@ -129,7 +141,17 @@ class ClientController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => [
+                'required', 'string',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->input('phone_country') === 'PK') {
+                        if (! preg_match('/^\d{11}$/', $value)) {
+                            $fail('Pakistani phone number must be exactly 11 numeric digits (e.g. 03001234567).');
+                        }
+                    }
+                },
+            ],
+            'phone_country' => 'required|string|size:2',
             'role' => 'required|string|exists:roles,name',
             'is_active' => 'nullable|boolean',
             'file' => 'nullable|mimes:jpeg,jpg,png|max:2000',

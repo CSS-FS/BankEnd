@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\BreedController;
 use App\Http\Controllers\Web\ChartController;
 use App\Http\Controllers\Web\ClientController;
+use App\Http\Controllers\Web\CountryController;
 use App\Http\Controllers\Web\DailyReportsController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ExpenseHeadController;
@@ -189,6 +190,9 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin']], func
         Route::get('/web-settings/{group}', [WebSettingController::class, 'byGroup'])->name('system.settings.group');
         Route::put('/web-settings/bulk', [WebSettingController::class, 'bulkUpdate'])->name('system.settings.bulk');
     });
+
+    Route::resource('countries', CountryController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
 
     // Resource routes for clients and charts
     Route::resources([

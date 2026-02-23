@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
             SettingsTableSeeder::class,
             ShortcutSeeder::class,
             IotDataLogsSeeder::class,
+            CountriesSqlSeeder::class,
         ]);
     }
 }

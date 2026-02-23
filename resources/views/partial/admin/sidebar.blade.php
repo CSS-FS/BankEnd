@@ -33,6 +33,7 @@
                             <a href="javascript:void(0);"
                                class="{{ Route::is('charts.*') ||
                                          Route::is('breeding.*') ||
+                                         Route::is('countries.*') ||
                                          Route::is('feeds.*') ||
                                          Route::is('expense.heads.*') ||
                                          Route::is('pricing-plans.*') ||
@@ -53,6 +54,12 @@
                                     <a href="{{ route('breeding.index') }}"
                                        class="{{ request()->routeIs('breeding.*') ? 'active' : '' }}">
                                         Breeds
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('countries.index') }}"
+                                       class="{{ request()->routeIs('countries.*') ? 'active' : '' }}">
+                                        Countries
                                     </a>
                                 </li>
                                 <li>

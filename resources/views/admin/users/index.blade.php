@@ -170,14 +170,20 @@
                                             <i data-feather="log-in" class="feather-log-in"></i>
                                         </a>
 
-                                        <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete-modal"
-                                           data-user-id="{{ $user->id }}" data-user-name="{{ $user->name }}" class="p-2 open-delete-modal">
-                                            <i data-feather="trash-2" class="feather-trash-2"></i>
+                                        @if(!$user->is_active)
+                                        <a href="javascript:void(0);"
+                                           data-bs-toggle="modal"
+                                           data-bs-target="#delete-modal"
+                                           data-user-id="{{ $user->id }}"
+                                           data-user-name="{{ $user->name }}"
+                                           class="d-flex align-items-center p-2 border rounded text-danger open-delete-modal">
+                                            <i class="ti ti-trash"></i>
                                         </a>
                                         <form action="{{ route('clients.destroy', $user->id) }}" method="POST" id="delete{{ $user->id }}">
                                             @csrf
                                             @method('DELETE')
                                         </form>
+                                        @endif
                                         @endrole
                                     </div>
                                 </td>
@@ -254,10 +260,24 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="phone" class="form-label">Phone<span class="text-danger ms-1">*</span></label>
-                                    <input type="tel" class="form-control" id="phone_no" name="phone" required>
-                                    <div class="invalid-feedback">
-                                        Valid phone no. of user must be provided.
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label mb-0">Phone Number<span class="text-danger ms-1">*</span></label>
+                                        <span id="add-phone-hint" class="fs-11 text-warning fw-medium" style="display:none;">
+                                            <i class="ti ti-info-circle me-1"></i>Pakistan: exactly 11 digits, e.g. 03001234567
+                                        </span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <select class="form-select" id="add-phone-country" name="phone_country" style="width: 210px; flex-shrink: 0;">
+                                            @foreach($countries as $c)
+                                                <option value="{{ $c->alpha_2_code }}" {{ $c->alpha_2_code === 'PK' ? 'selected' : '' }}>
+                                                    {{ $c->alpha_2_code }} — {{ $c->country }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <input type="tel" class="form-control" id="phone_no" name="phone" required placeholder="e.g. 3001234567">
+                                    </div>
+                                    <div class="fs-12 text-danger mt-1 d-none" id="add-phone-error">
+                                        Pakistani phone number must be exactly 11 numeric digits.
                                     </div>
                                 </div>
 
@@ -355,10 +375,24 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="phone" class="form-label">Phone<span class="text-danger ms-1">*</span></label>
-                                    <input type="tel" class="form-control" id="edit-phone" name="phone" required>
-                                    <div class="invalid-feedback">
-                                        Valid phone no. of user must be provided.
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label mb-0">Phone Number<span class="text-danger ms-1">*</span></label>
+                                        <span id="edit-phone-hint" class="fs-11 text-warning fw-medium" style="display:none;">
+                                            <i class="ti ti-info-circle me-1"></i>Pakistan: exactly 11 digits, e.g. 03001234567
+                                        </span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <select class="form-select" id="edit-phone-country" name="phone_country" style="width: 210px; flex-shrink: 0;">
+                                            @foreach($countries as $c)
+                                                <option value="{{ $c->alpha_2_code }}" {{ $c->alpha_2_code === 'PK' ? 'selected' : '' }}>
+                                                    {{ $c->alpha_2_code }} — {{ $c->country }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <input type="tel" class="form-control" id="edit-phone" name="phone" required placeholder="e.g. 3001234567">
+                                    </div>
+                                    <div class="fs-12 text-danger mt-1 d-none" id="edit-phone-error">
+                                        Pakistani phone number must be exactly 11 numeric digits.
                                     </div>
                                 </div>
 
@@ -493,6 +527,49 @@
                     text.textContent = 'Strength: strong';
                 }
             });
+        });
+    </script>
+    <script>
+        function validatePKPhone(inputEl, countrySelectEl, hintEl, errorEl) {
+            const isPK  = countrySelectEl.value === 'PK';
+            const val   = inputEl.value.trim();
+            const valid = !isPK || /^\d{11}$/.test(val);
+
+            // Hint in label row
+            hintEl.style.display = isPK ? 'inline' : 'none';
+
+            // Inline error below the group
+            if (!valid && val.length > 0) {
+                const remaining = 11 - val.replace(/\D/g, '').length;
+                errorEl.textContent = remaining > 0
+                    ? `Pakistani phone number must be exactly 11 digits — ${remaining} digit${remaining > 1 ? 's' : ''} remaining.`
+                    : 'Only 11 numeric digits are allowed for a Pakistani number.';
+                errorEl.classList.remove('d-none');
+                inputEl.classList.add('is-invalid');
+            } else {
+                errorEl.classList.add('d-none');
+                inputEl.classList.remove('is-invalid');
+            }
+
+            // Native validity for form submit blocking
+            inputEl.setCustomValidity(valid ? '' : 'Invalid Pakistani phone number.');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const addPhoneInput   = document.getElementById('phone_no');
+            const addPhoneCountry = document.getElementById('add-phone-country');
+            const addPhoneHint    = document.getElementById('add-phone-hint');
+            const addPhoneError   = document.getElementById('add-phone-error');
+            addPhoneInput.addEventListener('input',    () => validatePKPhone(addPhoneInput, addPhoneCountry, addPhoneHint, addPhoneError));
+            addPhoneCountry.addEventListener('change', () => validatePKPhone(addPhoneInput, addPhoneCountry, addPhoneHint, addPhoneError));
+            validatePKPhone(addPhoneInput, addPhoneCountry, addPhoneHint, addPhoneError);
+
+            const editPhoneInput   = document.getElementById('edit-phone');
+            const editPhoneCountry = document.getElementById('edit-phone-country');
+            const editPhoneHint    = document.getElementById('edit-phone-hint');
+            const editPhoneError   = document.getElementById('edit-phone-error');
+            editPhoneInput.addEventListener('input',    () => validatePKPhone(editPhoneInput, editPhoneCountry, editPhoneHint, editPhoneError));
+            editPhoneCountry.addEventListener('change', () => validatePKPhone(editPhoneInput, editPhoneCountry, editPhoneHint, editPhoneError));
         });
     </script>
     <script>
@@ -633,6 +710,14 @@
                     const toggle = document.getElementById('edit-is-active');
                     toggle.checked = user.is_active == 1;
                     updateStatusUI(toggle.checked);
+
+                    // Re-run phone hint/validation for the loaded user
+                    validatePKPhone(
+                        document.getElementById('edit-phone'),
+                        document.getElementById('edit-phone-country'),
+                        document.getElementById('edit-phone-hint'),
+                        document.getElementById('edit-phone-error')
+                    );
 
                     $('#editUserForm').attr('action', '/admin/clients/' + user.id);
                     $('#editUserModal').modal('show');
