@@ -6,13 +6,17 @@ use App\Http\Controllers\ApiController;
 use App\Models\Device;
 use App\Models\DeviceAppliance;
 use App\Services\DynamoDbService;
+use App\Services\IotAlertService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class IoTDeviceDataController extends ApiController
 {
-    public function __construct(protected DynamoDbService $dynamoDbService)
-    {
+    public function __construct(
+        protected DynamoDbService $dynamoDbService,
+        protected IotAlertService $iotAlertService,
+    ) {
         parent::__construct();
     }
 
@@ -40,6 +44,9 @@ class IoTDeviceDataController extends ApiController
         );
 
         $this->dynamoDbService->putSensorData($sensorData);
+
+        // Real-time threshold check
+        $this->checkSensorThresholds($device, $request->except(['device_serial', 'timestamp']));
 
         return response()->json(['message' => 'Sensor data stored successfully.'], 201);
     }
@@ -70,6 +77,9 @@ class IoTDeviceDataController extends ApiController
             );
 
             $this->dynamoDbService->putSensorData($sensorData);
+
+            // Real-time threshold check
+            $this->checkSensorThresholds($device, collect($record)->except(['device_serial', 'timestamp'])->toArray());
         }
 
         return response()->json(['message' => 'All sensor data records processed successfully.'], 201);
@@ -257,6 +267,9 @@ class IoTDeviceDataController extends ApiController
         );
         $this->dynamoDbService->putSensorData($sensorData);
 
+        // Real-time threshold check
+        $this->checkSensorThresholds($device, collect($request->except(['device_serial', 'appliances', 'timestamp']))->toArray());
+
         return response()->json([
             'message' => 'Device data (appliances + sensors) synced successfully.',
         ], 201);
@@ -307,6 +320,9 @@ class IoTDeviceDataController extends ApiController
             );
             $this->dynamoDbService->putSensorData($sensorData);
 
+            // Real-time threshold check
+            $this->checkSensorThresholds($device, collect($record)->except(['appliances', 'timestamp'])->toArray());
+
             // Track latest record for MySQL update
             if (!$latestRecord || $timestamp > $latestRecord['timestamp']) {
                 $latestRecord = [
@@ -354,6 +370,34 @@ class IoTDeviceDataController extends ApiController
     private function resolveDevice(string $serial): Device
     {
         return Device::where('serial_no', $serial)->firstOrFail();
+    }
+
+    /**
+     * Helper: check sensor parameter values against shed thresholds in real-time.
+     */
+    private function checkSensorThresholds(Device $device, array $sensorValues): void
+    {
+        $shedId = DB::table('shed_devices')
+            ->where('device_id', $device->id)
+            ->where('is_active', true)
+            ->value('shed_id');
+
+        if (! $shedId) {
+            return;
+        }
+
+        $tracked = ['temperature', 'humidity', 'co2', 'ammonia'];
+
+        foreach ($tracked as $param) {
+            if (isset($sensorValues[$param]) && is_numeric($sensorValues[$param])) {
+                $this->iotAlertService->checkParameterThreshold(
+                    $shedId,
+                    $device->id,
+                    $param,
+                    (float) $sensorValues[$param]
+                );
+            }
+        }
     }
 
     /**
