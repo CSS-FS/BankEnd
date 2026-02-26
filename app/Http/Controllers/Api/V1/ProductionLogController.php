@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Events\NotificationTriggered;
+use App\Events\AbnormalKPIDetected;
+use App\Events\DailyReportSubmitted;
+use App\Services\KPIAlertService;
 use App\Http\Controllers\ApiController;
 use App\Models\Flock;
 use App\Models\ProductionLog;
@@ -109,31 +111,15 @@ class ProductionLogController extends ApiController
                 ? $lastLog->todate_water_consumed + $validated['day_water_consumed'] + $validated['night_water_consumed']
                 : $validated['day_water_consumed'] + $validated['night_water_consumed'],
             'is_vaccinated' => $validated['is_vaccinated'],
-            'day_medicine' => $validated['day_medicine'],
-            'night_medicine' => $validated['night_medicine'],
+            'day_medicine' => $validated['day_medicine'] ?? null,
+            'night_medicine' => $validated['night_medicine'] ?? null,
             'user_id' => Auth::id(),
         ]);
 
-        // Trigger notification for farm owner
-        $farm = $productionLog->shed->farm;
-        if ($farm && $farm->owner) {
-            event(new NotificationTriggered(
-                type: 'report',
-                notifiable: $productionLog,
-                userId: $farm->owner->id,
-                farmId: $farm->id,
-                title: 'New Daily Report Submitted',
-                message: "A new daily report for Shed '{$productionLog->shed->name}' in Flock '{$productionLog->flock->name}' has been submitted by {$productionLog->user->name}.",
-                data: [
-                    'shed_id' => $productionLog->shed_id,
-                    'flock_id' => $productionLog->flock_id,
-                    'production_log_id' => $productionLog->id,
-                    'submitter_id' => $productionLog->user_id,
-                ]
-            ));
-        }
+        // Notify all stakeholders that a daily report has been submitted
+        event(new DailyReportSubmitted($productionLog, $productionLog->shed, $flock));
 
-        // Optionally: Only create weight log if provided and valid
+        // Create weight log first — so FCR and CV are available for KPI check
         if (
             ! empty($validated['with_weight_log']) &&
             ! empty($validated['weighted_chickens_count']) &&
@@ -144,6 +130,12 @@ class ProductionLogController extends ApiController
                 $validated['weighted_chickens_count'],
                 $validated['total_weight']
             );
+        }
+
+        // Check KPIs and fire alert if any are abnormal
+        $breaches = app(KPIAlertService::class)->check($productionLog);
+        if (! empty($breaches)) {
+            event(new AbnormalKPIDetected($productionLog, $productionLog->shed, $flock, $breaches));
         }
 
         return response()->json($productionLog, 201);

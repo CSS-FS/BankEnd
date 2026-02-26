@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use App\Events\AbnormalKPIDetected;
+use App\Events\DailyReportSubmitted;
 use App\Events\NotificationTriggered;
 use App\Events\ParameterThresholdBreached;
 use App\Listeners\CreateGenericNotification;
+use App\Listeners\SendDailyReportNotification;
+use App\Listeners\SendKPIAlertNotification;
 use App\Listeners\SendParameterAlertNotification;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
@@ -53,6 +57,16 @@ class EventServiceProvider extends ServiceProvider
         Event::listen(
             ParameterThresholdBreached::class,
             SendParameterAlertNotification::class
+        );
+
+        Event::listen(
+            DailyReportSubmitted::class,
+            SendDailyReportNotification::class
+        );
+
+        Event::listen(
+            AbnormalKPIDetected::class,
+            SendKPIAlertNotification::class
         );
     }
 }

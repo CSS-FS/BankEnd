@@ -103,7 +103,7 @@ class SendParameterAlertNotification
             ]);
 
             // Queue push notification (only for critical alerts)
-            if (in_array($severity, ['critical', 'warning'])) {
+        if (in_array($severity, ['critical', 'warning'])) {
                 NotificationOutbox::create([
                     'target_type' => 'user',
                     'target_id' => $user->id,

@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Events\AbnormalKPIDetected;
+use App\Events\DailyReportSubmitted;
 use App\Exports\ProductionLogsExport;
+use App\Services\KPIAlertService;
 use App\Http\Controllers\Controller;
 use App\Models\Farm;
 use App\Models\Flock;
@@ -150,10 +153,13 @@ class ProductionLogController extends Controller
                 ? $lastLog->todate_water_consumed + $validated['day_water_consumed'] + $validated['night_water_consumed']
                 : $validated['day_water_consumed'] + $validated['night_water_consumed'],
             'is_vaccinated' => $validated['is_vaccinated'],
-            'day_medicine' => $validated['day_medicine'],
-            'night_medicine' => $validated['night_medicine'],
+            'day_medicine' => $validated['day_medicine'] ?? null,
+            'night_medicine' => $validated['night_medicine'] ?? null,
             'user_id' => Auth::id(),
         ]);
+
+        // Notify all stakeholders that a daily report has been submitted
+        event(new DailyReportSubmitted($productionLog, $productionLog->shed, $flock));
 
         // Optionally: Only create weight log if provided and valid
         if (
@@ -166,6 +172,12 @@ class ProductionLogController extends Controller
                 $validated['weighted_chickens_count'],
                 $validated['total_weight']
             );
+        }
+
+        // Check KPIs and fire alert if any are abnormal
+        $breaches = app(KPIAlertService::class)->check($productionLog);
+        if (! empty($breaches)) {
+            event(new AbnormalKPIDetected($productionLog, $productionLog->shed, $flock, $breaches));
         }
 
         return redirect()
