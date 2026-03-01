@@ -92,10 +92,11 @@
                         <thead class="thead-light">
                         <tr>
                             <th>User</th>
+                            <th>Farm</th>
                             <th class="text-center">Platform</th>
                             <th>Device ID</th>
                             <th>Token</th>
-                            <th class="text-center">Last Seen</th>
+                            <th class="text-center">Last Updated</th>
                             <th class="text-center">Status</th>
                             <th>Last Error</th>
                             <th class="no-sort"></th>
@@ -109,6 +110,17 @@
                                         <span class="fw-semibold">{{ optional($t->user)->name ?? '—' }}</span>
                                         <small class="text-muted">#{{ $t->user_id }}</small>
                                     </div>
+                                </td>
+
+                                <td>
+                                    @if($t->farm)
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-semibold">{{ $t->farm->name }}</span>
+                                            <small class="text-muted">#{{ $t->farm_id }}</small>
+                                        </div>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
                                 </td>
 
                                 <td class="text-center text-lowercase">
@@ -129,7 +141,7 @@
                                 </td>
 
                                 <td class="text-center">
-                                    {{ $t->last_seen_at ? $t->last_seen_at->format('d-m-Y H:i') : '—' }}
+                                    {{ $t->last_updated_at ? $t->last_updated_at->format('d-m-Y H:i') : '—' }}
                                 </td>
 
                                 <td class="text-center">
@@ -356,12 +368,12 @@
                     columnDefs: [{ targets: 'no-sort', orderable: false }],
                 });
 
-                // Filters
+                // Filters (column indices: 0=User, 1=Farm, 2=Platform, 3=DeviceID, 4=Token, 5=LastUpdated, 6=Status)
                 $('#platformFilter').on('change', function () {
-                    table.column(1).search(this.value).draw();
+                    table.column(2).search(this.value).draw();
                 });
                 $('#statusFilter').on('change', function () {
-                    table.column(5).search(this.value).draw();
+                    table.column(6).search(this.value).draw();
                 });
             }
 

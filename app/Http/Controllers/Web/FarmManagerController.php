@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Farm;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -100,20 +101,24 @@ class FarmManagerController extends Controller
                 'password_reset_required' => (bool) ($validated['password_reset_required'] ?? false),
             ]);
 
-            // Spatie role assignment
             $u->assignRole('manager');
 
-            // One manager per farm: remove existing assignment for this farm
-            DB::table('farm_managers')->where('farm_id', $farmId)->delete();
+            $farm = Farm::findOrFail($farmId);
 
-            // One farm per manager: remove if any (new user normally has none, but safe)
-            DB::table('farm_managers')->where('manager_id', $u->id)->delete();
+            // One manager per farm: remove existing manager from this farm (fires Observer → null their tokens)
+            $existingManagerIds = $farm->managers()->pluck('users.id')->toArray();
+            if (! empty($existingManagerIds)) {
+                $farm->managers()->detach($existingManagerIds);
+            }
 
-            DB::table('farm_managers')->insert([
-                'farm_id' => $farmId,
-                'manager_id' => $u->id,
-                'link_date' => now(),
-            ]);
+            // One farm per manager: remove new user from any previous farm (safe for new users)
+            $existingFarmIds = $u->managedFarms()->pluck('farms.id')->toArray();
+            if (! empty($existingFarmIds)) {
+                $u->managedFarms()->detach($existingFarmIds);
+            }
+
+            // Assign (fires Observer → sets their tokens farm_id)
+            $farm->managers()->attach($u->id, ['link_date' => now()]);
         });
 
         return back()->with('success', 'Manager created and assigned to farm successfully.');
@@ -143,17 +148,23 @@ class FarmManagerController extends Controller
             return back()->withErrors(['manager_id' => 'Selected user is not a manager.']);
         }
 
-        DB::transaction(function () use ($farmId, $managerId) {
-            // one-farm per manager
-            DB::table('farm_managers')->where('manager_id', $managerId)->delete();
-            // one manager per farm
-            DB::table('farm_managers')->where('farm_id', $farmId)->delete();
+        DB::transaction(function () use ($farm, $farmId, $managerId, $manager) {
+            $farmModel = Farm::findOrFail($farmId);
 
-            DB::table('farm_managers')->insert([
-                'farm_id' => $farmId,
-                'manager_id' => $managerId,
-                'link_date' => now(),
-            ]);
+            // Remove manager from any previous farm (fires Observer → null their tokens)
+            $prevFarmIds = $manager->managedFarms()->pluck('farms.id')->toArray();
+            if (! empty($prevFarmIds)) {
+                $manager->managedFarms()->detach($prevFarmIds);
+            }
+
+            // Remove current manager from this farm (fires Observer → null their tokens)
+            $existingManagerIds = $farmModel->managers()->pluck('users.id')->toArray();
+            if (! empty($existingManagerIds)) {
+                $farmModel->managers()->detach($existingManagerIds);
+            }
+
+            // Assign new manager (fires Observer → sets their tokens farm_id)
+            $farmModel->managers()->attach($managerId, ['link_date' => now()]);
         });
 
         return back()->with('success', 'Manager assigned successfully.');
@@ -172,7 +183,12 @@ class FarmManagerController extends Controller
             abort(403);
         }
 
-        DB::table('farm_managers')->where('farm_id', $farmId)->delete();
+        // Detach by ID so Observer fires per manager (→ null their tokens)
+        $farmModel = Farm::findOrFail($farmId);
+        $managerIds = $farmModel->managers()->pluck('users.id')->toArray();
+        if (! empty($managerIds)) {
+            $farmModel->managers()->detach($managerIds);
+        }
 
         return back()->with('success', 'Manager unassigned successfully.');
     }

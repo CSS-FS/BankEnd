@@ -83,7 +83,7 @@ class DispatchPushNotificationJob implements ShouldQueue
 
             $sender->sendToToken($token->token, $row->title, $row->body, $row->data ?? []);
 
-            $token->update(['last_seen_at' => now(), 'last_error' => null]);
+            $token->update(['last_updated_at' => now(), 'last_error' => null]);
             $row->update(['status' => 'sent', 'sent_at' => now(), 'last_error' => null]);
 
         } catch (\Throwable $e) {

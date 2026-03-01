@@ -219,11 +219,14 @@ class FarmController extends Controller
             'manager_id' => 'required|exists:users,id',
         ]);
 
-        // Remove old managers
-        $farm->managers()->detach();
+        // Remove old managers by ID (fires Observer → null their tokens)
+        $oldManagerIds = $farm->managers()->pluck('users.id')->toArray();
+        if (! empty($oldManagerIds)) {
+            $farm->managers()->detach($oldManagerIds);
+        }
 
-        // Assign new manager
-        $farm->managers()->attach($request->manager_id);
+        // Assign new manager (fires Observer → sets their tokens farm_id)
+        $farm->managers()->attach($request->manager_id, ['link_date' => now()]);
 
         return redirect()->back()
             ->with('success', 'Manager has been assigned successfully.');

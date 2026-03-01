@@ -13,9 +13,9 @@ class WebDeviceTokenController extends Controller
      */
     public function index(Request $request)
     {
-        $tokens = DeviceToken::with('user')
+        $tokens = DeviceToken::with(['user', 'farm'])
             ->when($request->filled('user_id'), fn ($q) => $q->where('user_id', $request->user_id))
-            ->orderByDesc('last_seen_at')
+            ->orderByDesc('last_updated_at')
             ->paginate(30);
 
         return view('admin.push_notifications.device_tokens', compact('tokens'));
