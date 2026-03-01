@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use App\Models\FarmManager;
+use App\Models\FarmStaff;
 
 class Farm extends Model
 {
@@ -59,6 +61,7 @@ class Farm extends Model
     public function managers()
     {
         return $this->belongsToMany(User::class, 'farm_managers', 'farm_id', 'manager_id')
+            ->using(FarmManager::class)
             ->withPivot('link_date');
     }
 
@@ -75,6 +78,7 @@ class Farm extends Model
     public function staff()
     {
         return $this->belongsToMany(User::class, 'farm_staff', 'farm_id', 'worker_id')
+            ->using(FarmStaff::class)
             ->withPivot('link_date');
     }
 

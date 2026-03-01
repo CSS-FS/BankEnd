@@ -15,21 +15,31 @@ class DeviceTokenController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'token'     => ['required','string','max:512'],
-            'platform'  => ['required','in:android,ios'],
-            'device_id' => ['required','string','max:128'],
+            'token'     => ['required', 'string', 'max:512'],
+            'platform'  => ['required', 'in:android,ios'],
+            'device_id' => ['required', 'string', 'max:128'],
         ]);
 
         $user = $request->user();
+
+        // Resolve farm — admin users have no farm association
+        $farmId = null;
+        if (! $user->hasRole('admin')) {
+            $farm = $user->farms()->first()
+                ?? $user->managedFarms()->first()
+                ?? $user->staffFarms()->first();
+            $farmId = $farm?->id;
+        }
 
         // Upsert by user_id + device_id
         DeviceToken::updateOrCreate(
             ['user_id' => $user->id, 'device_id' => $data['device_id']],
             [
-                'token' => $data['token'],
-                'platform' => $data['platform'],
-                'last_seen_at' => now(),
-                'revoked_at' => null,
+                'token'            => $data['token'],
+                'platform'         => $data['platform'],
+                'farm_id'          => $farmId,
+                'last_updated_at'  => now(),
+                'revoked_at'       => null,
             ]
         );
 

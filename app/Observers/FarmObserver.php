@@ -2,16 +2,19 @@
 
 namespace App\Observers;
 
+use App\Models\DeviceToken;
 use App\Models\Farm;
 
 class FarmObserver
 {
     /**
-     * Handle the Farm "created" event.
+     * Owner ne farm banayi → us ke device tokens farm se link karo.
      */
     public function created(Farm $farm): void
     {
-        //
+        if ($farm->owner_id) {
+            DeviceToken::syncFarmForUser($farm->owner_id, $farm->id);
+        }
     }
 
     /**
