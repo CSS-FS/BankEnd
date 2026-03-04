@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\DeviceToken;
 use App\Models\NotificationOutbox;
+use App\Models\Shed;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -110,9 +112,30 @@ class PushNotificationController extends Controller
 
     public function logs()
     {
-        $items = NotificationOutbox::orderByDesc('id')
-            ->get();
+        $items = NotificationOutbox::orderByDesc('id')->get();
 
-        return view('admin.push_notifications.logs', compact('items'));
+        // Bulk-load users for rows where target_type = 'user'
+        $userIds = $items->where('target_type', 'user')
+            ->pluck('target_id')
+            ->unique()
+            ->filter();
+
+        $users = User::whereIn('id', $userIds)
+            ->get()
+            ->keyBy('id');
+
+        // Bulk-load sheds + farms using shed_id stored in data JSON
+        $shedIds = $items->pluck('data')
+            ->filter()
+            ->map(fn($d) => is_array($d) ? ($d['shed_id'] ?? null) : null)
+            ->filter()
+            ->unique();
+
+        $sheds = Shed::with('farm')
+            ->whereIn('id', $shedIds)
+            ->get()
+            ->keyBy('id');
+
+        return view('admin.push_notifications.logs', compact('items', 'users', 'sheds'));
     }
 }

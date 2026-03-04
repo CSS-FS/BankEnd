@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "aws/aws-sdk-php": "^3.347",
+        "barryvdh/laravel-dompdf": "^3.1",
         "google/auth": "^1.50",
         "lab404/laravel-impersonate": "^1.7",
         "laravel/cashier": "^15.7",

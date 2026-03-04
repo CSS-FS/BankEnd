@@ -67,7 +67,15 @@
                     </div>
                 </div>
 
-                <div class="d-flex my-xl-auto right-content align-items-center row-gap-3">
+                <div class="d-flex my-xl-auto right-content align-items-center gap-2 row-gap-3">
+                    {{-- Type Filter --}}
+                    <select id="typeFilter" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="Report">Report</option>
+                        <option value="Notification">Notification</option>
+                    </select>
+
+                    {{-- Status Filter --}}
                     <select id="logStatusFilter" class="form-select">
                         <option value="">All Status</option>
                         <option value="pending">pending</option>
@@ -85,6 +93,9 @@
                         <tr>
                             <th>#</th>
                             <th>Target</th>
+                            <th class="text-center" style="width: 120px;">Type</th>
+                            <th style="width: 160px;">Farm</th>
+                            <th style="width: 160px;">User</th>
                             <th>Title / Body</th>
                             <th class="text-center">Status</th>
                             <th class="text-center">Attempts</th>
@@ -97,9 +108,26 @@
                         </thead>
                         <tbody>
                         @foreach($items as $row)
+                            @php
+                                // Resolve user from pre-loaded collection
+                                $rowUser = ($row->target_type === 'user' && isset($users[$row->target_id]))
+                                    ? $users[$row->target_id]
+                                    : null;
+
+                                // Resolve farm via shed_id in data JSON
+                                $shedId  = is_array($row->data) ? ($row->data['shed_id'] ?? null) : null;
+                                $rowFarm = ($shedId && isset($sheds[$shedId]))
+                                    ? $sheds[$shedId]->farm
+                                    : null;
+
+                                // Determine type: Report or Notification
+                                $isReport = is_array($row->data) && isset($row->data['production_log_id']);
+                            @endphp
                             <tr>
+                                {{-- # --}}
                                 <td class="fw-semibold">#{{ $row->id }}</td>
 
+                                {{-- Target --}}
                                 <td>
                                     @if($row->target_type === 'topic')
                                         <span class="badge bg-info-subtle text-dark">topic</span>
@@ -113,19 +141,64 @@
                                     @endif
                                 </td>
 
+                                {{-- Type: Report OR Notification --}}
+                                <td class="text-center">
+                                    @if($isReport)
+                                        <span class="badge bg-soft-info text-dark border">
+                                            <i class="ti ti-file-text me-1"></i>Report
+                                        </span>
+                                    @else
+                                        <span class="badge bg-soft-warning text-dark border">
+                                            <i class="ti ti-bell me-1"></i>Notification
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Farm (linked) --}}
+                                <td>
+                                    @if($rowFarm)
+                                        <a href="{{ route('admin.farms.detail', $rowFarm->id) }}"
+                                           class="text-primary fw-semibold small"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top"
+                                           title="View Farm Detail">
+                                            <i class="ti ti-building-farm me-1"></i>{{ $rowFarm->name }}
+                                        </a>
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
+                                </td>
+
+                                {{-- User (linked) --}}
+                                <td>
+                                    @if($rowUser)
+                                        <a href="{{ route('clients.show', $rowUser->id) }}"
+                                           class="text-primary fw-semibold small"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top"
+                                           title="View User">
+                                            <i class="ti ti-user me-1"></i>{{ $rowUser->name }}
+                                        </a>
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
+                                </td>
+
+                                {{-- Title / Body --}}
                                 <td style="min-width: 260px;">
                                     <div class="fw-semibold">{{ $row->title ?? '—' }}</div>
                                     <div class="text-muted">{{ \Illuminate\Support\Str::limit($row->body, 90) }}</div>
                                 </td>
 
+                                {{-- Status --}}
                                 <td class="text-center">
                                     @php
                                         $status = $row->status;
                                         $badgeClass = match($status) {
-                                            'sent' => 'bg-success-transparent text-success',
-                                            'failed' => 'bg-danger-transparent text-danger',
+                                            'sent'       => 'bg-success-transparent text-success',
+                                            'failed'     => 'bg-danger-transparent text-danger',
                                             'processing' => 'bg-warning-transparent text-warning',
-                                            default => 'bg-info-transparent text-info',
+                                            default      => 'bg-info-transparent text-info',
                                         };
                                     @endphp
                                     <span class="p-1 pe-2 rounded-1 fs-10 {{ $badgeClass }}">
@@ -133,26 +206,32 @@
                                     </span>
                                 </td>
 
+                                {{-- Attempts --}}
                                 <td class="text-center">
                                     <span class="badge bg-secondary-subtle text-dark">
                                         {{ $row->attempts }}/{{ $row->max_attempts }}
                                     </span>
                                 </td>
 
+                                {{-- Scheduled --}}
                                 <td class="text-center">
                                     {{ $row->scheduled_at ? $row->scheduled_at->format('d-m-Y H:i') : '—' }}
                                 </td>
 
+                                {{-- Next Retry --}}
                                 <td class="text-center">
                                     {{ $row->next_retry_at ? $row->next_retry_at->format('d-m-Y H:i') : '—' }}
                                 </td>
 
+                                {{-- Sent --}}
                                 <td class="text-center">
                                     {{ $row->sent_at ? $row->sent_at->format('d-m-Y H:i') : '—' }}
                                 </td>
 
+                                {{-- Error --}}
                                 <td class="text-muted">{{ Str::limit($row->last_error, 90) }}</td>
 
+                                {{-- Action --}}
                                 <td class="action-table-data">
                                     <div class="action-icon d-inline-flex">
                                         <a href="javascript:void(0)"
@@ -222,7 +301,7 @@
                         sLengthMenu: 'Rows Per Page _MENU_ Entries',
                         info: "_START_ - _END_ of _TOTAL_ items",
                         paginate: {
-                            next: ' <i class=" fa fa-angle-right"></i>',
+                            next: ' <i class="fa fa-angle-right"></i>',
                             previous: '<i class="fa fa-angle-left"></i> '
                         },
                     },
@@ -232,22 +311,28 @@
                     columnDefs: [{ targets: 'no-sort', orderable: false }],
                 });
 
+                // Type filter — column index 2
+                $('#typeFilter').on('change', function () {
+                    table.column(2).search(this.value).draw();
+                });
+
+                // Status filter — column index 6 (shifted by 3 new columns)
                 $('#logStatusFilter').on('change', function () {
-                    table.column(3).search(this.value).draw();
+                    table.column(6).search(this.value).draw();
                 });
             }
 
             // View payload modal
             document.querySelectorAll('.view-payload').forEach(btn => {
                 btn.addEventListener('click', function () {
-                    const id = this.getAttribute('data-id');
+                    const id    = this.getAttribute('data-id');
                     const title = this.getAttribute('data-title');
-                    const body = this.getAttribute('data-body');
-                    const json = this.getAttribute('data-json');
+                    const body  = this.getAttribute('data-body');
+                    const json  = this.getAttribute('data-json');
 
                     document.getElementById('payloadModalLabel').textContent = 'Payload - #' + id;
                     document.getElementById('payloadTitle').textContent = title || '—';
-                    document.getElementById('payloadBody').textContent = body || '—';
+                    document.getElementById('payloadBody').textContent  = body  || '—';
 
                     try {
                         const parsed = JSON.parse(json || '{}');

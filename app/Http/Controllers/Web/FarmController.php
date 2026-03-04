@@ -109,12 +109,31 @@ class FarmController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource (JSON — used by Edit Farm modal AJAX).
      */
     public function show(Farm $farm)
     {
         return response()
             ->json($farm->load(['owner', 'managers', 'sheds', 'province', 'district', 'city']));
+    }
+
+    /**
+     * Display a full detail page for a farm.
+     */
+    public function detail(Farm $farm)
+    {
+        $farm->load([
+            'owner',
+            'managers',
+            'province',
+            'district',
+            'city',
+            'sheds.latestFlock.breed',
+            'sheds.latestFlocks.breed',
+            'sheds.devices',
+        ]);
+
+        return view('admin.farms.show', compact('farm'));
     }
 
     /**

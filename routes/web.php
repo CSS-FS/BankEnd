@@ -318,7 +318,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin']], func
             ->name('notifications.enqueue');
 
         Route::get('/notifications/logs', 'logs')
-            ->middleware('can:notifications.logs.view')
+            // ->middleware('can:notifications.logs.view')
             ->name('notifications.logs');
     });
 
@@ -338,6 +338,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin|owner']]
     Route::prefix('farms')->controller(FarmController::class)->group(function () {
         Route::get('/', 'index')->name('admin.farms.index');
         Route::post('/', 'store')->name('admin.farms.store');
+        Route::get('/{farm}/detail', 'detail')->name('admin.farms.detail');
         Route::get('/{farm}', 'show')->name('admin.farms.show');
         Route::put('/{farm}', 'update')->name('admin.farms.update');
         Route::delete('/{farm}', 'destroy')->name('admin.farms.destroy');
