@@ -14,12 +14,12 @@ class NotificationController extends Controller
     public function index()
     {
         if (Auth::user()->hasRole('admin')) {
-            $notifications = Notification::with(['farm', 'notifiable'])
+            $notifications = Notification::with(['farm', 'notifiable', 'user'])
                 ->orderBy('created_at', 'desc')
                 ->paginate(20);
         } else {
             $notifications = Notification::where('user_id', Auth::id())
-                ->with(['farm', 'notifiable'])
+                ->with(['farm', 'notifiable', 'user'])
                 ->orderBy('created_at', 'desc')
                 ->paginate(20);
         }

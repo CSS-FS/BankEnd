@@ -6,6 +6,7 @@ use App\Exports\ParameterDataExport;
 use App\Http\Controllers\ApiController;
 use App\Http\Resources\SensorDataResource;
 use App\Models\Device;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\DeviceAppliance;
 use App\Models\IotDataLog;
 use App\Models\Shed;
@@ -617,11 +618,19 @@ class SensorDataController extends ApiController
             ];
         });
 
-        // Get unit
+        // Calculate statistics
+        $statistics = [
+            'min'     => $logs->min('min_value'),
+            'average' => round($logs->avg('avg_value'), 2),
+            'max'     => $logs->max('max_value'),
+        ];
+
+        // Get unit + alert thresholds
         $limit = \App\Models\ShedParameterLimit::where('shed_id', $shedId)
             ->where('parameter_name', $parameter)
             ->first();
         $unit = $limit ? $limit->unit : $this->getDefaultUnit($parameter);
+        $alertThresholds = $limit ? ['low' => $limit->min_value, 'high' => $limit->max_value] : null;
 
         // Generate filename
         $filename = sprintf(
@@ -632,7 +641,11 @@ class SensorDataController extends ApiController
         );
 
         return Excel::download(
-            new ParameterDataExport($shed, $parameter, $exportData, $unit),
+            new ParameterDataExport(
+                $shed, $parameter, $exportData, $unit,
+                $statistics, $alertThresholds, $timeRange,
+                $from->format('Y-m-d'), $to->format('Y-m-d')
+            ),
             $filename
         );
     }
@@ -707,8 +720,15 @@ class SensorDataController extends ApiController
             ];
         });
 
-        // Generate HTML for PDF
-        $html = view('exports.parameter-data-pdf', [
+        // Generate filename
+        $filename = sprintf(
+            '%s_%s_data_%s.pdf',
+            str_replace(' ', '_', $shed->name),
+            $parameter,
+            Carbon::now()->format('Y-m-d_His')
+        );
+
+        $pdf = Pdf::loadView('exports.parameter-data-pdf', [
             'shed' => $shed,
             'parameter' => $parameter,
             'unit' => $unit,
@@ -725,21 +745,9 @@ class SensorDataController extends ApiController
             'time_range' => $timeRange,
             'from' => $from->format('Y-m-d'),
             'to' => $to->format('Y-m-d'),
-        ])->render();
+        ])->setPaper('a4', 'portrait');
 
-        // Generate filename
-        $filename = sprintf(
-            '%s_%s_data_%s.pdf',
-            str_replace(' ', '_', $shed->name),
-            $parameter,
-            Carbon::now()->format('Y-m-d_His')
-        );
-
-        return response()->streamDownload(function () use ($html) {
-            echo $html;
-        }, $filename, [
-            'Content-Type' => 'application/pdf',
-        ]);
+        return $pdf->download($filename);
     }
 
     /**

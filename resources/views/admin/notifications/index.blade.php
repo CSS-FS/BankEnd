@@ -55,8 +55,7 @@
                     <select id="typeFilter" class="form-select">
                         <option value="">All Types</option>
                         <option value="Report">Report</option>
-                        <option value="Alert">Alert</option>
-                        <option value="Info">Info</option>
+                        <option value="Notification">Notification</option>
                     </select>
                 </div>
             </div>
@@ -66,8 +65,10 @@
                         <thead class="thead-light">
                         <tr>
                             <th class="text-center no-sort" style="width: 60px;">Status</th>
-                            <th class="text-center" style="width: 100px;">Type</th>
+                            <th class="text-center" style="width: 110px;">Type</th>
                             <th>Notification</th>
+                            <th style="width: 160px;">Farm</th>
+                            <th style="width: 160px;">User</th>
                             <th class="text-center" style="width: 160px;">Date</th>
                             <th class="text-center no-sort" style="width: 100px;">Action</th>
                         </tr>
@@ -75,6 +76,7 @@
                         <tbody>
                         @forelse($notifications as $notification)
                             <tr class="{{ $notification->is_read ? '' : 'table-active' }}">
+                                {{-- Status --}}
                                 <td class="text-center">
                                     @if($notification->is_read)
                                         <span class="badge bg-soft-secondary text-dark border">
@@ -86,37 +88,66 @@
                                         </span>
                                     @endif
                                 </td>
+
+                                {{-- Type: Report OR Notification --}}
                                 <td class="text-center">
                                     @if($notification->type === 'report_submitted')
                                         <span class="badge bg-soft-info text-dark border">
                                             <i class="ti ti-file-text me-1"></i>Report
                                         </span>
-                                    @elseif($notification->type === 'device_failure')
-                                        <span class="badge bg-soft-danger text-dark border">
-                                            <i class="ti ti-alert-triangle me-1"></i>Alert
-                                        </span>
                                     @else
-                                        <span class="badge bg-soft-secondary text-dark border">
-                                            <i class="ti ti-bell me-1"></i>Info
+                                        <span class="badge bg-soft-warning text-dark border">
+                                            <i class="ti ti-bell me-1"></i>Notification
                                         </span>
                                     @endif
                                 </td>
+
+                                {{-- Notification title + message --}}
                                 <td>
                                     <div>
                                         <h6 class="mb-1">{{ $notification->title }}</h6>
                                         <p class="text-muted small mb-0">{{ $notification->message }}</p>
-                                        @if($notification->farm)
-                                            <small class="text-muted">
-                                                <i class="ti ti-building-farm me-1"></i>{{ $notification->farm->name }}
-                                            </small>
-                                        @endif
                                     </div>
                                 </td>
+
+                                {{-- Farm (linked) --}}
+                                <td>
+                                    @if($notification->farm)
+                                        <a href="{{ route('admin.farms.show', $notification->farm->id) }}"
+                                           class="text-primary fw-semibold small"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top"
+                                           title="View Farm">
+                                            <i class="ti ti-building-farm me-1"></i>{{ $notification->farm->name }}
+                                        </a>
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
+                                </td>
+
+                                {{-- User (linked) --}}
+                                <td>
+                                    @if($notification->user)
+                                        <a href="{{ route('clients.show', $notification->user->id) }}"
+                                           class="text-primary fw-semibold small"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top"
+                                           title="View User">
+                                            <i class="ti ti-user me-1"></i>{{ $notification->user->name }}
+                                        </a>
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
+                                </td>
+
+                                {{-- Date --}}
                                 <td class="text-center">
                                     <small class="text-muted d-block">{{ $notification->created_at->format('d-m-Y') }}</small>
                                     <small class="text-muted d-block">{{ $notification->created_at->format('h:i A') }}</small>
                                     <small class="text-primary">{{ $notification->created_at->diffForHumans() }}</small>
                                 </td>
+
+                                {{-- Action --}}
                                 <td class="text-center action-table-data">
                                     <div class="action-icon d-inline-flex">
                                         @if(!$notification->is_read)
@@ -126,8 +157,7 @@
                                                         class="d-flex align-items-center bg-danger p-2 border rounded"
                                                         data-bs-toggle="tooltip"
                                                         data-bs-placement="top"
-                                                        title=""
-                                                        data-bs-original-title="Mark as Read">
+                                                        title="Mark as Read">
                                                     <i class="ti ti-check"></i>
                                                 </button>
                                             </form>
@@ -139,7 +169,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5">
+                                <td colspan="7" class="text-center py-5">
                                     <i class="ti ti-bell-off fs-40 text-muted mb-3 d-block"></i>
                                     <p class="text-muted mb-0">No notifications yet</p>
                                 </td>
@@ -161,7 +191,7 @@
                     "bFilter": true,
                     "sDom": 'fBtlpi',
                     "ordering": true,
-                    "order": [[3, 'desc']],
+                    "order": [[5, 'desc']], // Date column is now at index 5
                     "language": {
                         search: ' ',
                         sLengthMenu: '_MENU_',
@@ -179,6 +209,7 @@
                     },
                 });
 
+                // Type filter targets column index 1 (Type column)
                 $('#typeFilter').on('change', function() {
                     var selected = $(this).val();
                     table.column(1).search(selected).draw();
