@@ -88,6 +88,13 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
+        // Check if user is blocked
+        if (! $user->is_active) {
+            return back()->withErrors([
+                'email' => 'Your account has been blocked. Please contact support.',
+            ])->onlyInput('email');
+        }
+
         // Manually log in the user
         Auth::login($user);
         $request->session()->regenerate();

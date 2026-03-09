@@ -77,6 +77,14 @@ class AuthController extends ApiController
         }
 
         $user = $request->user();
+
+        if (! $user->is_active) {
+            Auth::logout();
+            return response()->json([
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+
         $token = $user->createToken('mobile')->plainTextToken;
 
         return response()->json([
