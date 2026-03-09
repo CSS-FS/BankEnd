@@ -725,7 +725,12 @@
         }
 
         // Spinner on submit
-        document.getElementById('editUserForm').addEventListener('submit', function() {
+        document.getElementById('editUserForm').addEventListener('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
             document.getElementById('updateBtnText').classList.add('d-none');
             document.getElementById('updateSpinner').classList.remove('d-none');
             document.getElementById('updateBtn').setAttribute('disabled', 'disabled');
