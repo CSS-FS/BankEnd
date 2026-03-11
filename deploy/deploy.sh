@@ -70,10 +70,12 @@ log "Restarting application containers"
 compose down --remove-orphans
 compose up -d --build
 
-log "Linking storage and warming Laravel caches"
-compose exec -T "${PHP_SERVICE}" php artisan storage:link || true
-compose exec -T "${PHP_SERVICE}" php artisan optimize:clear
+log "Running database migrations"
 compose exec -T "${PHP_SERVICE}" php artisan migrate --force
+
+log "Linking storage and warming Laravel caches"
+compose exec -T --user root "${PHP_SERVICE}" php artisan storage:link || true
+compose exec -T "${PHP_SERVICE}" php artisan optimize:clear
 compose exec -T "${PHP_SERVICE}" php artisan config:cache
 compose exec -T "${PHP_SERVICE}" php artisan route:cache
 compose exec -T "${PHP_SERVICE}" php artisan view:cache
