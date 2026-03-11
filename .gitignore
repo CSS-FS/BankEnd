@@ -6,6 +6,7 @@
 # DEPENDENCIES
 # ============================================================
 /vendor/
+.composer/
 node_modules/
 
 # ============================================================
@@ -61,7 +62,7 @@ octane-server-state.json
 # ============================================================
 # PACKAGE MANAGERS & LOCK FILES
 # ============================================================
-composer.lock
+# Commit composer.lock for deterministic production deploys.
 # Uncomment if you want to ignore npm lock files too:
 # package-lock.json
 # yarn.lock
