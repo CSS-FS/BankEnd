@@ -9,7 +9,7 @@
     <div class="container">
         <div class="row g-5">
             <div class="col-lg-3">
-                <img src="{{ asset(settings('company.logo')) }}" alt="FlockSense Logo" class="footer-logo mb-4">
+                <img src="{{ asset(settings('company.logo', 'assets/img/logo.png')) }}" alt="FlockSense Logo" class="footer-logo mb-4">
                 <p class="small">{{ settings('company.slogan') }}</p>
                 <div class="d-flex gap-3 mt-3">
                     @foreach(settings_group('social') as $row)

@@ -153,8 +153,8 @@ class IotAlertService
             ->where('event_type', 'threshold_breach')
             ->where('severity', $severity)
             ->where('created_at', '>', now()->subMinutes(15)) // Within last 15 minutes
-            ->whereRaw("JSON_EXTRACT(details, '$.parameter') = ?", [$parameter])
-            ->whereRaw("JSON_EXTRACT(details, '$.alert_type') = ?", [$alertType])
+            ->whereRaw("details->>'parameter' = ?", [$parameter])
+            ->whereRaw("details->>'alert_type' = ?", [$alertType])
             ->first();
 
         if ($recentAlert) {

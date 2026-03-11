@@ -14,20 +14,31 @@ class FarmSeeder extends Seeder
      */
     public function run(): void
     {
-        Farm::firstOrCreate([
-            'name' => 'Sadoki Farm',
-            'address' => 'Sadoki',
-            'owner_id' => 1,
-            'latitude' => 31.90610000,
-            'longitude' => 74.23520000,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
+        $farm = Farm::firstOrCreate(
+            [
+                'name' => 'Sadoki Farm',
+                'address' => 'Sadoki',
+                'owner_id' => 1,
+            ],
+            [
+                'country' => 'Pakistan',
+                'phone_number' => null,
+                'contact_person' => null,
+                'alerts' => false,
+                'notifications' => false,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]
+        );
 
-        DB::table('farm_managers')->insert([
-            'farm_id' => 1,
-            'manager_id' => 2,
-            'link_date' => Carbon::now(),
-        ]);
+        DB::table('farm_managers')->updateOrInsert(
+            [
+                'farm_id' => $farm->id,
+                'manager_id' => 2,
+            ],
+            [
+                'link_date' => Carbon::now(),
+            ]
+        );
     }
 }

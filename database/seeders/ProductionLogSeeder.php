@@ -61,7 +61,7 @@ class ProductionLogSeeder extends Seeder
                 : 0;
 
             // 5. Calculate age
-            $age = $flock->start_date->diffInDays($production_log_date) ?? 0;
+            $age = (int) ($flock->start_date->diffInDays($production_log_date) ?? 0);
 
             // 6. Create ProductionLog
             ProductionLog::firstOrCreate([

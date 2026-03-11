@@ -94,9 +94,13 @@ class PricingSeeder extends Seeder
         ];
 
         foreach ($tiers as $tier) {
-            Pricing::create([
+            $slug = Str::slug($tier['name']);
+
+            Pricing::updateOrCreate([
+                'slug' => $slug,
+            ], [
                 'name' => $tier['name'],
-                'slug' => Str::slug($tier['name']),
+                'slug' => $slug,
                 'description' => $tier['description'],
                 'price' => $tier['price'],
                 'currency' => $tier['currency'],

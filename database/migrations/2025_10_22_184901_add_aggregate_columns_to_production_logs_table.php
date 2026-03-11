@@ -12,35 +12,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('production_logs', function (Blueprint $table) {
-            // 1. total_mortality (computed/virtual column)
+            // 1. total_mortality (computed/generated column)
             $table->integer('total_mortality_count')
-                ->storedAs('`day_mortality_count` + `night_mortality_count`')
-                ->after('night_mortality_count');
+                ->storedAs('day_mortality_count + night_mortality_count');
 
             // 2. todate_mortality (cumulative, default 0)
             $table->integer('todate_mortality_count')
-                ->default(0)
-                ->after('total_mortality_count');
+                ->default(0);
 
-            // 3. total_feed_consumed (computed)
+            // 3. total_feed_consumed (computed/generated column)
             $table->double('total_feed_consumed', 10, 2)
-                ->storedAs('`day_feed_consumed` + `night_feed_consumed`')
-                ->after('night_feed_consumed');
+                ->storedAs('day_feed_consumed + night_feed_consumed');
 
             // 4. todate_feed_consumed (cumulative, default 0)
             $table->double('todate_feed_consumed', 10, 2)
-                ->default(0)
-                ->after('total_feed_consumed');
+                ->default(0);
 
-            // 5. total_water_consumed (computed)
+            // 5. total_water_consumed (computed/generated column)
             $table->double('total_water_consumed', 10, 2)
-                ->storedAs('`day_water_consumed` + `night_water_consumed`')
-                ->after('night_water_consumed');
+                ->storedAs('day_water_consumed + night_water_consumed');
 
             // 6. todate_water_consumed (cumulative, default 0)
             $table->double('todate_water_consumed', 10, 2)
-                ->default(0)
-                ->after('total_water_consumed');
+                ->default(0);
         });
     }
 

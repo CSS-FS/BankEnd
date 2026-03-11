@@ -8,17 +8,24 @@
             $videos = settings_group('video');
             $selectedVideo = null;
             foreach ($videos as $row) {
-                if ($row['selected']) {
+                if (is_array($row) && !empty($row['selected'])) {
                     $selectedVideo = $row;
                     break;
                 }
             }
+
+            if (!$selectedVideo && !empty($videos)) {
+                $firstVideo = reset($videos);
+                $selectedVideo = is_array($firstVideo) ? $firstVideo : null;
+            }
         @endphp
         <div class="homepage-top__video" aria-hidden="true">
             <video id="homepage-video-bg" class="homepage-top__video-player" preload="auto" autoplay muted loop
-                   playsinline webkit-playsinline="true" poster="{{ asset($selectedVideo['cover']) }}">
-                <source src="{{ asset($selectedVideo['video']) }}" type="video/mp4">
-                Sorry, your browser doesn't support HTML5 video.
+                         playsinline webkit-playsinline="true" poster="{{ $selectedVideo ? asset($selectedVideo['cover']) : '' }}">
+                     @if($selectedVideo)
+                          <source src="{{ asset($selectedVideo['video']) }}" type="video/mp4">
+                     @endif
+                     Sorry, your browser doesn't support HTML5 video.
             </video>
             <div class="homepage-top__bg"></div>
         </div>

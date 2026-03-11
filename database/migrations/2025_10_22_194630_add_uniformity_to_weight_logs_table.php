@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('weight_logs', function (Blueprint $table) {
-            $table->double('flock_weight_gain', 10, 3)->default(0)->after('aggregated_total_weight');
-            $table->double('uniformity', 10, 3)->default(0)->after('coefficient_of_variation');
+            $table->double('flock_weight_gain', 10, 3)->default(0);
+            $table->double('uniformity', 10, 3)->default(0);
         });
     }
 
