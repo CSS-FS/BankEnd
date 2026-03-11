@@ -31,7 +31,7 @@ LOG_CHANNEL=stack
 LOG_LEVEL=info
 
 DB_CONNECTION=pgsql
-DB_HOST=YOUR_SERVER_IP
+DB_HOST=host.docker.internal
 DB_PORT=5432
 DB_DATABASE=your_database
 DB_USERNAME=your_username
@@ -42,6 +42,22 @@ QUEUE_CONNECTION=database
 SESSION_DRIVER=database
 FILESYSTEM_DISK=local
 ```
+
+`DB_HOST=127.0.0.1` will not work here because Laravel runs inside Docker. From the `app` container, `127.0.0.1` points to the container itself, not the Hetzner host machine. This repository maps `host.docker.internal` to Docker's host gateway for the `app` service, so the container can reach PostgreSQL installed directly on the server.
+
+PostgreSQL must also accept connections from Docker containers:
+
+```conf
+# postgresql.conf
+listen_addresses = '*'
+```
+
+```conf
+# pg_hba.conf
+host    all    all    172.17.0.0/16    md5
+```
+
+Adjust the subnet if your Docker bridge network uses a different CIDR on the server, then restart PostgreSQL.
 
 Generate an application key once on the server after the first code sync:
 
