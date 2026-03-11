@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\PushNotificationController;
 use App\Http\Controllers\Api\V1\AlertController;
 use App\Http\Controllers\Web\ChartController;
@@ -13,6 +14,7 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::get('/health', HealthCheckController::class);
 
 Route::prefix('auth')->controller(AuthController::class)->group(function () {
     Route::post('/request-otp', 'requestOtp');
