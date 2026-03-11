@@ -1,22 +1,106 @@
-/.phpunit.cache
-/node_modules
-/public/build
-/public/hot
-/public/storage
-/storage/*.key
-/storage/logs/*.log
-/vendor
+###############################################################################
+# LARAVEL .gitignore
+###############################################################################
+
+# ============================================================
+# DEPENDENCIES
+# ============================================================
+/vendor/
+.composer/
+node_modules/
+
+# ============================================================
+# ENVIRONMENT & SECRETS
+# ============================================================
 .env
-composer.lock
-.env.backup
-.env.production
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
+.env.*
+!.env.example
 auth.json
+
+# ============================================================
+# COMPILED & BUILD ASSETS
+# ============================================================
+/public/build/
+/public/hot
+/public/mix-manifest.json
+/public/css/app.css
+/public/js/app.js
+
+# ============================================================
+# STORAGE & GENERATED FILES
+# ============================================================
+/storage/*.key
+/storage/logs/
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/testing/
+/storage/framework/views/
+/storage/app/public/
+/storage/pail/
+
+# ============================================================
+# LARAVEL SPECIFIC
+# ============================================================
+/public/storage
+/bootstrap/cache/*.php
+!bootstrap/cache/.gitkeep
+bootstrap/compiled.php
+app/storage/
+
+# Laravel Octane
+/public/frankenphp-*
+octane-server-state.json
+
+# ============================================================
+# TESTING
+# ============================================================
+/.phpunit.cache/
+.phpunit.result.cache
+/coverage/
+.pest/
+
+# ============================================================
+# PACKAGE MANAGERS & LOCK FILES
+# ============================================================
+# Commit composer.lock for deterministic production deploys.
+# Uncomment if you want to ignore npm lock files too:
+# package-lock.json
+# yarn.lock
+
+# ============================================================
+# LOGS & DEBUG
+# ============================================================
 npm-debug.log
 yarn-error.log
-/.fleet
-/.idea
-/.vscode
+*.log
 
+# ============================================================
+# LOCAL DEVELOPMENT ENVIRONMENTS
+# ============================================================
+Homestead.json
+Homestead.yaml
+/.vagrant/
+.phpactor.json
+
+# Laravel Sail / Docker overrides
+docker-compose.override.yml
+
+# Laravel Valet
+.valet/
+
+# ============================================================
+# IDE & EDITORS
+# ============================================================
+/.fleet/
+/.idea/
+/.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ============================================================
+# MISC
+# ============================================================
+*.zip
+*.tar.gz

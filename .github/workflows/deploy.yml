@@ -1,0 +1,76 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate deploy secrets
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          test -n "$SERVER_HOST" || { echo "SERVER_HOST is empty"; exit 1; }
+          test -n "$SERVER_USER" || { echo "SERVER_USER is empty"; exit 1; }
+          test -n "$SERVER_PORT" || { echo "SERVER_PORT is empty"; exit 1; }
+          test -n "$SERVER_SSH_KEY" || { echo "SERVER_SSH_KEY is empty"; exit 1; }
+
+          echo "SERVER_HOST is set"
+          echo "SERVER_USER is set"
+          echo "SERVER_PORT is set"
+          echo "SERVER_SSH_KEY is set"
+          echo "SERVER_PORT value: $SERVER_PORT"
+          echo "SERVER_HOST visible chars:"
+          printf '%s\n' "$SERVER_HOST" | cat -vet
+
+      - name: Check host resolution
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        run: |
+          if command -v getent >/dev/null 2>&1; then
+            getent hosts "$SERVER_HOST"
+            exit 0
+          fi
+
+          if command -v nslookup >/dev/null 2>&1; then
+            nslookup "$SERVER_HOST"
+            exit 0
+          fi
+
+          ping -c 1 "$SERVER_HOST"
+
+      - name: Copy application files to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "./*"
+          target: /var/www/flocksense-backend
+          strip_components: 0
+          overwrite: true
+          rm: false
+
+      - name: Run remote deployment
+        uses: appleboy/ssh-action@v1.2.1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          command_timeout: 60m
+          script: |
+            set -e
+            chmod +x /var/www/flocksense-backend/deploy/deploy.sh
+            APP_DIR=/var/www/flocksense-backend /var/www/flocksense-backend/deploy/deploy.sh
