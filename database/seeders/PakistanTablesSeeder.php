@@ -16,11 +16,9 @@ class PakistanTablesSeeder extends Seeder
     {
         $driver = DB::connection()->getDriverName();
 
-        if ($driver === 'pgsql') {
-            DB::statement('SET session_replication_role = replica');
-        } elseif ($driver === 'mysql') {
+        if ($driver === 'mysql') {
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        } else {
+        } elseif ($driver !== 'pgsql') {
             DB::statement('PRAGMA FOREIGN_KEYS=0');
         }
 
@@ -33,11 +31,9 @@ class PakistanTablesSeeder extends Seeder
         $this->call(PakistanTehsilTableSeeder::class);
         $this->call(PakistanTehsilLocaleTableSeeder::class);
 
-        if ($driver === 'pgsql') {
-            DB::statement('SET session_replication_role = DEFAULT');
-        } elseif ($driver === 'mysql') {
+        if ($driver === 'mysql') {
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
-        } else {
+        } elseif ($driver !== 'pgsql') {
             DB::statement('PRAGMA FOREIGN_KEYS=1');
         }
     }

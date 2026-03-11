@@ -7,7 +7,7 @@ This repository now ships with a production-ready Docker setup for the target se
 - PostgreSQL running directly on the server
 - Docker services:
   - `app`: PHP 8.2 FPM
-  - `nginx`: reverse proxy on port `80`
+  - `nginx`: reverse proxy exposed on port `8000`
 - External Docker network: `appnet`
 
 ## 1. Server bootstrap
@@ -25,7 +25,7 @@ Create the production environment file at `/var/www/flocksense-backend/.env`. At
 APP_NAME=FlockSense
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=http://your-server-domain-or-ip
+APP_URL=http://your-server-domain-or-ip:8000
 
 LOG_CHANNEL=stack
 LOG_LEVEL=info
@@ -121,3 +121,9 @@ Workflow behavior:
 - storage path writability and disk usage
 
 Use it for uptime checks and post-deploy verification.
+
+With the current production Compose mapping, access points are:
+
+- Admin login: `http://your-server-domain-or-ip:8000/login`
+- Admin dashboard: `http://your-server-domain-or-ip:8000/admin/dashboard`
+- Health check: `http://your-server-domain-or-ip:8000/api/health`
