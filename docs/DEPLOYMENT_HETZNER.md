@@ -59,6 +59,22 @@ host    all    all    172.17.0.0/16    md5
 
 Adjust the subnet if your Docker bridge network uses a different CIDR on the server, then restart PostgreSQL.
 
+The application database user must also be able to use and create objects in schema `public`. Run this once on the server as the `postgres` superuser, replacing the placeholders with your real database and role names:
+
+```sql
+ALTER DATABASE your_database OWNER TO your_username;
+\c your_database
+GRANT CONNECT ON DATABASE your_database TO your_username;
+GRANT USAGE, CREATE ON SCHEMA public TO your_username;
+ALTER SCHEMA public OWNER TO your_username;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO your_username;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO your_username;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO your_username;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO your_username;
+```
+
+If the role is intentionally restricted and you do not want it to own the database, the minimum requirement for Laravel migrations is `USAGE, CREATE` on schema `public` plus normal DML privileges on the application tables.
+
 Generate an application key once on the server after the first code sync:
 
 ```bash

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,6 +21,9 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Muhammad Tariq',
                 'phone' => '03346031105',
                 'email_verified_at' => now(),
+                'password' => 'ChangeMe123!',
+                'remember_token' => Str::random(10),
+                'password_reset_required' => true,
             ]
         );
 
@@ -29,6 +33,9 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Abdullah Abid',
                 'phone' => '03326334598',
                 'email_verified_at' => now(),
+                'password' => 'ChangeMe123!',
+                'remember_token' => Str::random(10),
+                'password_reset_required' => true,
             ]
         );
 
