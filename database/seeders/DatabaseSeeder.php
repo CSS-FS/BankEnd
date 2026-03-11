@@ -14,17 +14,23 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Muhammad Tariq',
-            'email' => 'saaim01@gmail.com',
-            'phone' => '03346031105',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'saaim01@gmail.com'],
+            [
+                'name' => 'Muhammad Tariq',
+                'phone' => '03346031105',
+                'email_verified_at' => now(),
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Abdullah Abid',
-            'email' => 'abdrps2004@gmail.com',
-            'phone' => '03326334598',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'abdrps2004@gmail.com'],
+            [
+                'name' => 'Abdullah Abid',
+                'phone' => '03326334598',
+                'email_verified_at' => now(),
+            ]
+        );
 
         $this->call([
             RoleSeeder::class,

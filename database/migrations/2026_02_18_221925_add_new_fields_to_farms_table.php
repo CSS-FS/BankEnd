@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::table('farms', function (Blueprint $table) {
             $table->dropColumn(['latitude', 'longitude']);
 
-            $table->string('country')->default('Pakistan')->after('address');
-            $table->string('phone_number', 11)->nullable()->after('country');
-            $table->string('contact_person', 50)->nullable()->after('phone_number');
-            $table->boolean('alerts')->default(false)->after('contact_person');
-            $table->boolean('notifications')->default(false)->after('alerts');
+            $table->string('country')->default('Pakistan');
+            $table->string('phone_number', 11)->nullable();
+            $table->string('contact_person', 50)->nullable();
+            $table->boolean('alerts')->default(false);
+            $table->boolean('notifications')->default(false);
         });
     }
 

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use DB;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\SQLiteConnection;
 
 class PakistanTablesSeeder extends Seeder
 {
@@ -15,11 +14,14 @@ class PakistanTablesSeeder extends Seeder
      */
     public function run()
     {
+        $driver = DB::connection()->getDriverName();
 
-        if (DB::connection() instanceof SQLiteConnection) {
-            DB::statement('PRAGMA FOREIGN_KEYS=0');
-        } else {
+        if ($driver === 'pgsql') {
+            DB::statement('SET session_replication_role = replica');
+        } elseif ($driver === 'mysql') {
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        } else {
+            DB::statement('PRAGMA FOREIGN_KEYS=0');
         }
 
         $this->call(PakistanProvinceTableSeeder::class);
@@ -31,11 +33,12 @@ class PakistanTablesSeeder extends Seeder
         $this->call(PakistanTehsilTableSeeder::class);
         $this->call(PakistanTehsilLocaleTableSeeder::class);
 
-        if (DB::connection() instanceof SQLiteConnection) {
-            DB::statement('PRAGMA FOREIGN_KEYS=1');
-        } else {
+        if ($driver === 'pgsql') {
+            DB::statement('SET session_replication_role = DEFAULT');
+        } elseif ($driver === 'mysql') {
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        } else {
+            DB::statement('PRAGMA FOREIGN_KEYS=1');
         }
-
     }
 }
