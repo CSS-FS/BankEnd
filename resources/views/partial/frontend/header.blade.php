@@ -22,7 +22,7 @@
     <div class="container py-3">
         <header class="w-100 d-flex justify-content-between align-items-center">
             <div class="logo">
-                <img src="{{ asset(settings('company.logo')) }}" alt="Logo">
+                <img src="{{ asset(settings('company.logo', 'assets/img/logo.png')) }}" alt="Logo">
             </div>
             <div class="nav">
                 <a href="/" class="pt-1 me-3 fw-semibold text-decoration-none text-dark">Home</a>

@@ -16,7 +16,7 @@ class PakistanDistrictTableSeeder extends Seeder
     {
         \DB::table('pakistan_districts')->truncate();
 
-        \DB::table('pakistan_districts')->insert(array(
+        $districts = array(
 
             /**
              *
@@ -2223,7 +2223,17 @@ class PakistanDistrictTableSeeder extends Seeder
                     'longitude' => 73.5954691,
                     'map_zoom' => 11,
                 )
-        ));
+        );
+
+        $districts = array_map(function ($district) {
+            if (array_key_exists('map_zoom', $district) && $district['map_zoom'] !== null) {
+                $district['map_zoom'] = (int) round((float) $district['map_zoom']);
+            }
+
+            return $district;
+        }, $districts);
+
+        \DB::table('pakistan_districts')->insert($districts);
 
     }
 }

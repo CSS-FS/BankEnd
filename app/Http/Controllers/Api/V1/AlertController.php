@@ -310,7 +310,7 @@ class AlertController extends Controller
 
         $avgResponseTime = $query->clone()
             ->join('alert_responses', 'alert.id', '=', 'alert_responses.alert_id')
-            ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, alert.created_at, alert_responses.responded_at)) as avg_minutes')
+            ->selectRaw('AVG(EXTRACT(EPOCH FROM (alert_responses.responded_at - alert.created_at)) / 60) as avg_minutes')
             ->value('avg_minutes');
 
         return response()->json([

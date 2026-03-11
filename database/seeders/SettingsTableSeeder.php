@@ -202,7 +202,21 @@ class SettingsTableSeeder extends Seeder
             ],
         ];
 
-        // Insert settings into the database
-        DB::table('settings')->insert($settings);
+        foreach ($settings as $setting) {
+            DB::table('settings')->updateOrInsert(
+                [
+                    'group' => $setting['group'],
+                    'key' => $setting['key'],
+                ],
+                [
+                    'value' => $setting['value'],
+                    'type' => $setting['type'],
+                    'is_encrypted' => $setting['is_encrypted'],
+                    'description' => $setting['description'],
+                    'updated_at' => $setting['updated_at'],
+                    'created_at' => $setting['created_at'],
+                ]
+            );
+        }
     }
 }

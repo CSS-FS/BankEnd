@@ -7,8 +7,8 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <a class="navbar-brand d-flex align-items-center" href="/">
-                <img src="{{ asset(settings('company.logo')) }}" alt="FlockSense logo" class="desktop-logo d-none d-lg-block">
-                <img src="{{ asset(settings('company.mobile-logo')) }}" alt="FlockSense mobile logo" class="mobile-logo d-lg-none">
+                <img src="{{ asset(settings('company.logo', 'assets/img/logo.png')) }}" alt="FlockSense logo" class="desktop-logo d-none d-lg-block">
+                <img src="{{ asset(settings('company.mobile-logo', 'assets/img/mobile_logo.png')) }}" alt="FlockSense mobile logo" class="mobile-logo d-lg-none">
                 <span class="visually-hidden">{{ settings('company.name') }}</span>
             </a>
         </div>

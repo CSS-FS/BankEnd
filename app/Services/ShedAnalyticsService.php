@@ -544,9 +544,9 @@ class ShedAnalyticsService
                             cur.bird_cost,
                             CASE
                                 WHEN cur.total = 0 THEN 0
-                                ELSE ((cur.total - IFNULL(prev.total, 0)) * 100 / cur.total)
+                                ELSE ((cur.total - COALESCE(prev.total, 0)) * 100 / cur.total)
                             END AS diff_amount,
-                            (cur.bird_cost - IFNULL(prev.bird_cost, 0)) AS diff_bird_cost
+                            (cur.bird_cost - COALESCE(prev.bird_cost, 0)) AS diff_bird_cost
                         FROM FlockTotals cur
                         LEFT JOIN FlockTotals prev
                             ON prev.flock_id = (

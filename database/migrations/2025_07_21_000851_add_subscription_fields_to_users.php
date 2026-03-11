@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             // Track the user's current plan, trial, etc.
             // pricing_id and trial_ends_at already exist in the table
-            $table->string('subscription_status')->nullable()->after('trial_ends_at'); // active, cancelled, past_due, trial, expired
-            $table->string('stripe_customer_id')->nullable()->after('subscription_status');
-            $table->string('stripe_subscription_id')->nullable()->after('stripe_customer_id');
+            $table->string('subscription_status')->nullable(); // active, cancelled, past_due, trial, expired
+            $table->string('stripe_customer_id')->nullable();
+            $table->string('stripe_subscription_id')->nullable();
         });
     }
 

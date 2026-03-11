@@ -12,7 +12,6 @@ return new class extends Migration
             // Add farm_id (nullable — admin users have no farm)
             $table->foreignId('farm_id')
                 ->nullable()
-                ->after('user_id')
                 ->constrained('farms')
                 ->nullOnDelete();
 
