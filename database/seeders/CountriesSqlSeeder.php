@@ -26,8 +26,20 @@ class CountriesSqlSeeder extends Seeder
 
         $sql = File::get($path);
 
-        // Handle multi-statement SQL safely by splitting on semicolons would be fragile.
-        // Instead, just run as unprepared if your driver supports it (MySQL does).
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            // Use ON CONFLICT to skip duplicates on PostgreSQL
+            $sql = str_replace(
+                'INSERT INTO countries',
+                'INSERT INTO countries',
+                $sql
+            );
+            // Remove trailing semicolon, add ON CONFLICT clause
+            $sql = rtrim(trim($sql), ';');
+            $sql .= ' ON CONFLICT (country) DO NOTHING;';
+        }
+
         DB::unprepared($sql);
 
         $this->command?->info('Countries seeded from SQL file.');
