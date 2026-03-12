@@ -71,20 +71,20 @@
                                         Remember me
                                     </label>
                                 </div>
-                                <a href="/register" class="small fw-semibold text-primary">Create Account</a>
+                                {{-- <a href="/register" class="small fw-semibold text-primary">Create Account</a> --}}
                             </div>
                             <div class="col-12 d-grid">
                                 <button type="submit" class="btn btn-primary">Login</button>
                             </div>
                         </form>
-                        <div class="auth-divider">
-                            <span>or continue with</span>
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-outline-light"><i
-                                    class="fa-brands fa-google me-2"></i>Gmail</button>
-                            <button class="btn btn-outline-light"><i class="fa-brands fa-facebook me-2"></i>Facebook</button>
-                        </div>
+                            {{-- <div class="auth-divider">
+                                <span>or continue with</span>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-light"><i
+                                        class="fa-brands fa-google me-2"></i>Gmail</button>
+                                <button class="btn btn-outline-light"><i class="fa-brands fa-facebook me-2"></i>Facebook</button>
+                            </div> --}}
                     </div>
                 </div>
             </div>

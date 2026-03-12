@@ -59,9 +59,9 @@
                 <a class="btn btn-outline-secondary me-2" href="/login">
                     <i class="bi bi-person-circle me-2"></i>Login
                 </a>
-                <a class="btn btn-primary" href="/register">
+                {{-- <a class="btn btn-primary" href="/register">
                     <i class="bi bi-person-plus me-2"></i>Sign Up
-                </a>
+                </a> --}}
             </div>
         </div>
     </div>

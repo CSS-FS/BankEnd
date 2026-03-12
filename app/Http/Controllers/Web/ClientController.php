@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeEmail;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
@@ -81,6 +83,8 @@ class ClientController extends Controller
             $file = $request->file('file');
             $user->addMedia($file);
         }
+
+        Mail::to($user->email)->queue(new WelcomeEmail($user, $validated['password']));
 
         return redirect()
             ->route('clients.index')
