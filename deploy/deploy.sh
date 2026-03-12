@@ -80,7 +80,16 @@ compose exec -T "${PHP_SERVICE}" php artisan config:cache
 compose exec -T "${PHP_SERVICE}" php artisan route:cache
 compose exec -T "${PHP_SERVICE}" php artisan view:cache
 
-log "Running post-deploy health check"
-compose exec -T nginx wget -q -O /dev/null http://127.0.0.1/api/health
+log "Running nginx health check"
+if ! compose exec -T nginx wget -q -O /dev/null http://127.0.0.1/nginx-health; then
+    printf 'Nginx health check failed: /nginx-health did not return success.\n' >&2
+    exit 1
+fi
+
+log "Running application health check"
+if ! compose exec -T nginx wget -q -O /dev/null http://127.0.0.1/api/health; then
+    printf 'Application health check failed: /api/health did not return success.\n' >&2
+    exit 1
+fi
 
 log "Deployment completed successfully"
