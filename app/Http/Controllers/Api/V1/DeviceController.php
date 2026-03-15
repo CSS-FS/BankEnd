@@ -6,6 +6,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Resources\DeviceResource;
 use App\Models\Device;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class DeviceController extends ApiController
@@ -18,7 +19,11 @@ class DeviceController extends ApiController
         $devices = QueryBuilder::for(Device::class)
             ->with('sheds')
             ->withCount(['sheds', 'appliances'])
-            ->allowedFilters(['id', 'serial_no', 'firmware_version'])
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                'serial_no',
+                'firmware_version',
+            ])
             ->allowedIncludes(['sheds', 'appliances'])
             ->allowedSorts(['id', 'serial_no', 'created_at'])
             ->get();

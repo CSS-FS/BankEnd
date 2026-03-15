@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class UserController extends ApiController
@@ -23,7 +24,10 @@ class UserController extends ApiController
         $users = QueryBuilder::for(User::class)
             ->with('media')
             ->withCount('farms')
-            ->allowedFilters(['id', 'name'])
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                'name',
+            ])
             ->allowedIncludes('farms')
             ->allowedSorts(['id', 'name'])
             ->get();

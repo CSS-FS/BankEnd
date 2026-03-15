@@ -6,8 +6,9 @@ use App\Http\Controllers\ApiController;
 use App\Http\Resources\ShedResource;
 use App\Models\Shed;
 use Illuminate\Http\Request;
-use Spatie\QueryBuilder\QueryBuilder;
 use App\Services\DynamoDbService;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class ShedController extends ApiController
 {
@@ -27,7 +28,12 @@ class ShedController extends ApiController
             ->whereIn('farm_id', $request->user()->farms()->pluck('id'))
             ->with('farm')
             ->withCount(['flocks', 'devices'])
-            ->allowedFilters(['id', 'name', 'type', 'farm_id'])
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                'name',
+                'type',
+                AllowedFilter::exact('farm_id'),
+            ])
             ->allowedIncludes(['farm', 'flocks', 'devices'])
             ->allowedSorts(['id', 'name', 'capacity', 'created_at'])
             ->get();

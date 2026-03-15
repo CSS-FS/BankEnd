@@ -7,6 +7,7 @@ use App\Http\Resources\StaffResource;
 use App\Models\Farm;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class FarmStaffController extends ApiController
@@ -14,7 +15,11 @@ class FarmStaffController extends ApiController
     public function index(Request $request, Farm $farm)
     {
         $staff = QueryBuilder::for($farm->staff())
-            ->allowedFilters(['id', 'name', 'email'])
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                'name',
+                'email',
+            ])
             ->allowedSorts(['id', 'name', 'email'])
             ->get();
         return StaffResource::collection($staff);

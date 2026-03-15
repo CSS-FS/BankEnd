@@ -6,7 +6,7 @@ This repository now ships with a production-ready Docker setup for the target se
 - Application path: `/var/www/flocksense-backend`
 - PostgreSQL running directly on the server
 - Docker services:
-  - `app`: PHP 8.2 FPM
+  - `app`: PHP 8.4 FPM
   - `nginx`: reverse proxy on port `80`
 - External Docker network: `appnet`
 
@@ -19,13 +19,14 @@ mkdir -p /var/www/flocksense-backend
 docker network create appnet
 ```
 
-Create the production environment file at `/var/www/flocksense-backend/.env`. At minimum:
+Create the production environment file content for GitHub Actions as the `ENV_PRODUCTION_CONTENT` repository secret. The workflow will write it to `/var/www/flocksense-backend/.env` on each deploy. At minimum:
 
 ```dotenv
 APP_NAME=FlockSense
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=http://your-server-domain-or-ip
+APP_URL=https://your-server-domain-or-ip
+TRUSTED_PROXIES=*
 
 LOG_CHANNEL=stack
 LOG_LEVEL=info
@@ -42,6 +43,8 @@ QUEUE_CONNECTION=database
 SESSION_DRIVER=database
 FILESYSTEM_DISK=local
 ```
+
+If your public site is served over HTTPS through a reverse proxy, `APP_URL` must also use `https://`. This application now trusts forwarded proxy headers, so Laravel can correctly generate secure asset and login URLs from inside Docker.
 
 `DB_HOST=127.0.0.1` will not work here because Laravel runs inside Docker. From the `app` container, `127.0.0.1` points to the container itself, not the Hetzner host machine. This repository maps `host.docker.internal` to Docker's host gateway for the `app` service, so the container can reach PostgreSQL installed directly on the server.
 
@@ -85,7 +88,7 @@ docker compose run --rm app php artisan key:generate
 
 ## 2. Container layout
 
-- [`Dockerfile`](/Users/techling/Code/Personal/flocksense/BankEnd/Dockerfile) builds a PHP 8.2 FPM image with the required PostgreSQL and Laravel extensions.
+- [`Dockerfile`](/Users/techling/Code/Personal/flocksense/BankEnd/Dockerfile) builds a PHP 8.4 FPM image with the required PostgreSQL and Laravel extensions.
 - [`docker-compose.yml`](/Users/techling/Code/Personal/flocksense/BankEnd/docker-compose.yml) runs `app` and `nginx` on the shared external network.
 - [`docker/nginx/default.conf`](/Users/techling/Code/Personal/flocksense/BankEnd/docker/nginx/default.conf) serves Laravel from `/public` and forwards PHP requests to `app:9000`.
 - [`deploy/deploy.sh`](/Users/techling/Code/Personal/flocksense/BankEnd/deploy/deploy.sh) performs the full production rollout.
@@ -96,6 +99,7 @@ The GitHub Actions workflow is in [`deploy.yml`](/Users/techling/Code/Personal/f
 
 Required secrets:
 
+- `ENV_PRODUCTION_CONTENT`
 - `SERVER_HOST`
 - `SERVER_USER`
 - `SERVER_SSH_KEY`
@@ -104,6 +108,7 @@ Required secrets:
 Workflow behavior:
 
 - copies the repository to `/var/www/flocksense-backend`
+- writes `/var/www/flocksense-backend/.env` from `ENV_PRODUCTION_CONTENT`
 - runs the remote deploy script
 - installs Composer dependencies
 - builds Vite assets

@@ -9,6 +9,7 @@ use App\Models\ProductionLog;
 use App\Services\DynamoDbService;
 use App\Services\FarmService;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class FarmController extends ApiController
@@ -29,7 +30,10 @@ class FarmController extends ApiController
         $user = $request->user();
 
         $query = QueryBuilder::for(Farm::class)
-            ->allowedFilters(['id', 'name'])
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                'name',
+            ])
             ->allowedIncludes(['sheds', 'owner', 'managers', 'staff'])
             ->allowedSorts(['id', 'name'])
             ->with([
