@@ -18,7 +18,7 @@
                     </a>
                 </li>
             </ul>
-            @if(auth()->user()->hasRole('admin'))
+            @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('owner'))
             <div class="page-btn">
                 <a href="javascript:void(0)" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFarmModal">
                     <i class="ti ti-circle-plus me-1"></i>Add Farm
@@ -153,7 +153,7 @@
                                 </td>
                                 <td class="action-table-data">
                                     <div class="action-icon d-inline-flex">
-                                        @if(auth()->user()->hasRole('admin'))
+                                        @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('owner'))
                                         <a href="javascript:void(0)"
                                            class="p-2 border rounded me-2 edit-farm"
                                            data-bs-toggle="tooltip"
@@ -177,7 +177,7 @@
                                             <i class="ti ti-users"></i>
                                         </a>
 
-                                        @if(auth()->user()->hasRole('admin'))
+                                        @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('owner'))
                                         <a href="javascript:void(0);"
                                            data-bs-toggle="tooltip"
                                            data-bs-placement="top"
