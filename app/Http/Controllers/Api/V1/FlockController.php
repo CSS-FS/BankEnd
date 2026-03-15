@@ -6,6 +6,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Resources\FlockResource;
 use App\Models\Flock;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class FlockController extends ApiController
@@ -18,7 +19,11 @@ class FlockController extends ApiController
         $flocks = QueryBuilder::for(Flock::class)
             ->whereIn('shed_id', $request->user()->farms()->with('sheds')->get()->pluck('sheds.*.id')->flatten())
             ->with(['shed.farm', 'breed'])
-            ->allowedFilters(['id', 'name', 'shed_id'])
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                'name',
+                AllowedFilter::exact('shed_id'),
+            ])
             ->allowedIncludes(['shed', 'breed'])
             ->allowedSorts(['id', 'name', 'start_date', 'created_at'])
             ->get();

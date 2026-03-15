@@ -7,6 +7,7 @@ use App\Http\Resources\ManagerResource;
 use App\Models\Farm;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class FarmManagerController extends ApiController
@@ -14,7 +15,11 @@ class FarmManagerController extends ApiController
     public function index(Request $request, Farm $farm)
     {
         $managers = QueryBuilder::for($farm->managers())
-            ->allowedFilters(['id', 'name', 'email'])
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                'name',
+                'email',
+            ])
             ->allowedSorts(['id', 'name', 'email'])
             ->get();
         return ManagerResource::collection($managers);

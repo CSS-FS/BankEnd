@@ -47,6 +47,9 @@ mkdir -p \
 chown -R 33:33 storage bootstrap/cache
 chmod -R ug+rwx storage bootstrap/cache
 
+log "Clearing stale frontend dev-server markers"
+rm -f public/hot
+
 log "Building the PHP-FPM image"
 compose build "${PHP_SERVICE}"
 

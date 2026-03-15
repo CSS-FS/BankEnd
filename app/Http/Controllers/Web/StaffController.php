@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeEmail;
 use App\Models\User;
 use App\Helpers\FarmScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 class StaffController extends Controller
@@ -93,13 +95,16 @@ class StaffController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($validated, $farmId) {
+        $newStaff = null;
+
+        DB::transaction(function () use ($validated, $farmId, &$newStaff) {
             $staff = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'password' => Hash::make($validated['password']),
                 'is_active' => (bool) ($validated['is_active'] ?? true),
+                'password_reset_required' => true,
             ]);
 
             $staff->assignRole('worker');
@@ -110,7 +115,13 @@ class StaffController extends Controller
                 'worker_id' => $staff->id,
                 'link_date' => now(),
             ]);
+
+            $newStaff = $staff;
         });
+
+        if ($newStaff) {
+            Mail::to($newStaff->email)->queue(new WelcomeEmail($newStaff, $validated['password']));
+        }
 
         return back()->with('success', 'Staff added successfully.');
     }

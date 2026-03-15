@@ -19,16 +19,19 @@ jobs:
 
       - name: Validate deploy secrets
         env:
+          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_PORT: ${{ secrets.SERVER_PORT }}
           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
+          test -n "$ENV_PRODUCTION_CONTENT" || { echo "ENV_PRODUCTION_CONTENT is empty"; exit 1; }
           test -n "$SERVER_HOST" || { echo "SERVER_HOST is empty"; exit 1; }
           test -n "$SERVER_USER" || { echo "SERVER_USER is empty"; exit 1; }
           test -n "$SERVER_PORT" || { echo "SERVER_PORT is empty"; exit 1; }
           test -n "$SERVER_SSH_KEY" || { echo "SERVER_SSH_KEY is empty"; exit 1; }
 
+          echo "ENV_PRODUCTION_CONTENT is set"
           echo "SERVER_HOST is set"
           echo "SERVER_USER is set"
           echo "SERVER_PORT is set"
@@ -36,6 +39,13 @@ jobs:
           echo "SERVER_PORT value: $SERVER_PORT"
           echo "SERVER_HOST visible chars:"
           printf '%s\n' "$SERVER_HOST" | cat -vet
+
+      - name: Prepare production environment file
+        env:
+          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
+        run: |
+          umask 177
+          printf '%s' "$ENV_PRODUCTION_CONTENT" > .env
 
       - name: Check host resolution
         env:
@@ -66,6 +76,19 @@ jobs:
           overwrite: true
           rm: false
 
+      - name: Copy production environment file to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: ".env"
+          target: /var/www/flocksense-backend
+          strip_components: 0
+          overwrite: true
+          rm: false
+
       - name: Run remote deployment
         uses: appleboy/ssh-action@v1.2.1
         with:
@@ -78,3 +101,7 @@ jobs:
             set -e
             chmod +x /var/www/flocksense-backend/deploy/deploy.sh
             APP_DIR=/var/www/flocksense-backend /var/www/flocksense-backend/deploy/deploy.sh
+
+      - name: Remove temporary environment file
+        if: always()
+        run: rm -f .env

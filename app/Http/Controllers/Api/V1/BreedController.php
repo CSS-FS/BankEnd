@@ -6,6 +6,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Resources\BreedResource;
 use App\Models\Breed;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class BreedController extends ApiController
@@ -17,7 +18,11 @@ class BreedController extends ApiController
     {
         $breeds = QueryBuilder::for(Breed::class)
             ->withCount('flocks')
-            ->allowedFilters(['id', 'name', 'category'])
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                'name',
+                'category',
+            ])
             ->allowedSorts(['id', 'name', 'created_at'])
             ->get();
 

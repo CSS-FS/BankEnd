@@ -90,7 +90,7 @@ class GraphDataService
               WHERE
                 (:farmId IS NULL OR s.farm_id = :farmId)
                 AND (:startDate IS NULL OR p.production_log_date >= :startDate)
-                AND (:endDate IS NULL OR p.production_log_date < DATE_ADD(:endDate, INTERVAL 1 DAY))
+                AND (:endDate IS NULL OR p.production_log_date < (:endDate::date + INTERVAL \'1 day\'))
               GROUP BY
                 w.flock_id,
                 f.name,
@@ -119,10 +119,10 @@ class GraphDataService
               shed_name,
               d,
               age,
-              ROUND(adg_g_per_bird, 0)   AS adg_g_per_bird,
-              ROUND(feed_g_bird_cum, 0)  AS feed_g_bird_cum,
-              ROUND(weight_kg_per_flock, 2) AS weight_kg_per_flock,
-              ROUND(feed_kg_cum, 2)      AS feed_kg_cum
+              ROUND(adg_g_per_bird::numeric, 0)   AS adg_g_per_bird,
+              ROUND(feed_g_bird_cum::numeric, 0)  AS feed_g_bird_cum,
+              ROUND(weight_kg_per_flock::numeric, 2) AS weight_kg_per_flock,
+              ROUND(feed_kg_cum::numeric, 2)      AS feed_kg_cum
             FROM cum
             ORDER BY flock_id, d
         ';
@@ -162,11 +162,13 @@ class GraphDataService
               age,
               fcr_daily,
               adj_fcr_daily,
-              /* fcr(n) - fcr(n-1); if previous doesn't exist, treat it as 0 */
-              ROUND((fcr_daily - COALESCE(
-                LAG(fcr_daily) OVER (PARTITION BY flock_id ORDER BY d, age),
-                0
-              )) * 100 / fcr_daily, 3) AS fcr_difference
+              CASE
+                WHEN fcr_daily = 0 THEN 0
+                ELSE ROUND(((fcr_daily - COALESCE(
+                  LAG(fcr_daily) OVER (PARTITION BY flock_id ORDER BY d, age),
+                  0
+                )) * 100 / fcr_daily)::numeric, 3)
+              END AS fcr_difference
             FROM daily
             ORDER BY d, age";
 
@@ -232,7 +234,7 @@ class GraphDataService
           night_medicine
         FROM production_logs
         WHERE flock_id = :flockId
-          AND is_vaccinated = 1
+          AND is_vaccinated IS TRUE
         ORDER BY d
     ';
 

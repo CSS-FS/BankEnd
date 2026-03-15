@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeEmail;
 use App\Models\Farm;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class FarmManagerController extends Controller
 {
@@ -91,14 +94,16 @@ class FarmManagerController extends Controller
             abort(403, 'Invalid farm.');
         }
 
-        DB::transaction(function () use ($validated, $farmId) {
+        $newUser = null;
+
+        DB::transaction(function () use ($validated, $farmId, &$newUser) {
             $u = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'password' => Hash::make($validated['password']),
                 'is_active' => (bool) ($validated['is_active'] ?? true),
-                'password_reset_required' => (bool) ($validated['password_reset_required'] ?? false),
+                'password_reset_required' => true,
             ]);
 
             $u->assignRole('manager');
@@ -119,7 +124,13 @@ class FarmManagerController extends Controller
 
             // Assign (fires Observer → sets their tokens farm_id)
             $farm->managers()->attach($u->id, ['link_date' => now()]);
+
+            $newUser = $u;
         });
+
+        if ($newUser) {
+            Mail::to($newUser->email)->queue(new WelcomeEmail($newUser, $validated['password']));
+        }
 
         return back()->with('success', 'Manager created and assigned to farm successfully.');
     }
