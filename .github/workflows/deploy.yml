@@ -17,6 +17,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
       - name: Validate deploy secrets
         env:
           ENV_PRODUCTION_VALUES: ${{ secrets.ENV_PRODUCTION_VALUES }}
@@ -46,6 +53,12 @@ jobs:
         run: |
           umask 177
           printf '%s' "$ENV_PRODUCTION_VALUES" > .env
+
+      - name: Build frontend assets
+        run: |
+          rm -f public/hot
+          npm ci
+          npm run build
 
       - name: Check host resolution
         env:

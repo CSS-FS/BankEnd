@@ -61,17 +61,21 @@ compose run --rm --user root "${PHP_SERVICE}" composer install \
     --no-interaction
 
 if [[ -f package.json ]]; then
-    log "Building frontend assets"
-    docker run --rm \
-        -v "${APP_DIR}:/app" \
-        -w /app \
-        node:22-alpine \
-        sh -lc "npm ci && npm run build"
+    if [[ -f public/build/manifest.json ]]; then
+        log "Using prebuilt frontend assets from deployment bundle"
+    else
+        log "Frontend assets missing; building on server"
+        docker run --rm \
+            -v "${APP_DIR}:/app" \
+            -w /app \
+            node:22-alpine \
+            sh -lc "rm -f public/hot && npm ci && npm run build"
+    fi
 fi
 
 log "Restarting application containers"
 compose down --remove-orphans
-compose up -d --build
+compose up -d
 
 log "Running database migrations"
 compose exec -T "${PHP_SERVICE}" php artisan migrate --force

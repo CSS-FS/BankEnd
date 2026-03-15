@@ -107,11 +107,12 @@ Required secrets:
 
 Workflow behavior:
 
+- builds frontend assets in GitHub Actions
 - copies the repository to `/var/www/flocksense-backend`
 - writes `/var/www/flocksense-backend/.env` from `ENV_PRODUCTION_VALUES`
 - runs the remote deploy script
 - installs Composer dependencies
-- builds Vite assets
+- uses the prebuilt frontend bundle and falls back to server-side asset build only if needed
 - rebuilds and restarts containers
 - runs migrations with `--force`
 - refreshes Laravel caches
