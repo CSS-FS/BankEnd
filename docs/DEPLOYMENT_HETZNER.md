@@ -19,7 +19,7 @@ mkdir -p /var/www/flocksense-backend
 docker network create appnet
 ```
 
-Create the production environment file content for GitHub Actions as the `ENV_PRODUCTION_CONTENT` repository secret. The workflow will write it to `/var/www/flocksense-backend/.env` on each deploy. At minimum:
+Create the production environment file content for GitHub Actions as the `ENV_PRODUCTION_VALUES` repository secret. The workflow will write it to `/var/www/flocksense-backend/.env` on each deploy. At minimum:
 
 ```dotenv
 APP_NAME=FlockSense
@@ -99,7 +99,7 @@ The GitHub Actions workflow is in [`deploy.yml`](/Users/techling/Code/Personal/f
 
 Required secrets:
 
-- `ENV_PRODUCTION_CONTENT`
+- `ENV_PRODUCTION_VALUES`
 - `SERVER_HOST`
 - `SERVER_USER`
 - `SERVER_SSH_KEY`
@@ -108,7 +108,7 @@ Required secrets:
 Workflow behavior:
 
 - copies the repository to `/var/www/flocksense-backend`
-- writes `/var/www/flocksense-backend/.env` from `ENV_PRODUCTION_CONTENT`
+- writes `/var/www/flocksense-backend/.env` from `ENV_PRODUCTION_VALUES`
 - runs the remote deploy script
 - installs Composer dependencies
 - builds Vite assets
