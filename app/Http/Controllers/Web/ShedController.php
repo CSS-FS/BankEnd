@@ -82,22 +82,7 @@ class ShedController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('manager')) {
-            abort(403, 'Unauthorized action. Managers cannot create sheds.');
-        }
-
-        if ($user->hasRole('owner')) {
-            // Owner can create only one shed (across their farms)
-            $ownerShedCount = Shed::whereHas('farm', function ($q) use ($user) {
-                $q->where('owner_id', $user->id);
-            })->count();
-
-            if ($ownerShedCount >= 1) {
-                return redirect()
-                    ->back()
-                    ->with('error', 'You can only create one shed.');
-            }
-        } elseif (! $user->hasRole('admin')) {
+        if (! $user->hasRole('admin') && ! $user->hasRole('owner')) {
             abort(403, 'Unauthorized action.');
         }
 

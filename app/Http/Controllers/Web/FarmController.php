@@ -61,19 +61,7 @@ class FarmController extends Controller
     {
         $user = auth()->user();
 
-        // Admins: unlimited, Owners: only one, Managers: not allowed
-        if ($user->hasRole('manager')) {
-            abort(403, 'Unauthorized action. Managers cannot create farms.');
-        }
-
-        if ($user->hasRole('owner')) {
-            $existing = Farm::where('owner_id', $user->id)->count();
-            if ($existing >= 1) {
-                return redirect()
-                    ->back()
-                    ->with('error', 'You can only create one farm.');
-            }
-        } elseif (! $user->hasRole('admin')) {
+        if (! $user->hasRole('admin') && ! $user->hasRole('owner')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -149,9 +137,9 @@ class FarmController extends Controller
      */
     public function update(Request $request, Farm $farm)
     {
-        // Only admins can update farms
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized action. Only admins can update farms.');
+        $user = auth()->user();
+        if (! $user->hasRole('admin') && ! ($user->hasRole('owner') && $farm->owner_id === $user->id)) {
+            abort(403, 'Unauthorized action.');
         }
 
         $validated = $request->validate([
@@ -183,9 +171,9 @@ class FarmController extends Controller
      */
     public function destroy(Farm $farm)
     {
-        // Only admins can delete farms
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized action. Only admins can delete farms.');
+        $user = auth()->user();
+        if (! $user->hasRole('admin') && ! ($user->hasRole('owner') && $farm->owner_id === $user->id)) {
+            abort(403, 'Unauthorized action.');
         }
 
         // Check if the farm has any sheds assigned

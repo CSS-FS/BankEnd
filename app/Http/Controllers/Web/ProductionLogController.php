@@ -26,9 +26,18 @@ class ProductionLogController extends Controller
      */
     public function index(Request $request)
     {
-        $farms = Farm::with('sheds.flocks')
-            ->orderBy('name')
-            ->get();
+        $user = Auth::user();
+
+        $farms = $user->hasRole('admin')
+            ? Farm::with('sheds.flocks')->orderBy('name')->get()
+            : Farm::with('sheds.flocks')
+                ->where(function ($q) use ($user) {
+                    $q->where('owner_id', $user->id)
+                      ->orWhereHas('managers', fn ($q) => $q->where('users.id', $user->id))
+                      ->orWhereHas('staff', fn ($q) => $q->where('users.id', $user->id));
+                })
+                ->orderBy('name')
+                ->get();
 
         $logs = collect();
         $farmId = null;
