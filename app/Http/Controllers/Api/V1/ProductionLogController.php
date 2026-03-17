@@ -81,7 +81,7 @@ class ProductionLogController extends ApiController
         $net_count = $lastNetCount - ($validated['day_mortality_count'] + $validated['night_mortality_count']);
 
         // Calculate age (days since flock's start_date)
-        $age = $flock->start_date->diffInDays(today()) ?? 0;
+        $age = $flock->start_date ? $flock->start_date->diffInDays(today()) : 0;
 
         // Calculate livability
         $livability = $flock->chicken_count > 0
@@ -92,6 +92,7 @@ class ProductionLogController extends ApiController
         $productionLog = ProductionLog::create([
             'shed_id' => $validated['shed_id'],
             'flock_id' => $validated['flock_id'],
+            'production_log_date' => $today,
             'age' => $age,
             'day_mortality_count' => $validated['day_mortality_count'],
             'night_mortality_count' => $validated['night_mortality_count'],
@@ -189,7 +190,7 @@ class ProductionLogController extends ApiController
             $net_count = $lastNetCount - ($validated['day_mortality_count'] + $validated['night_mortality_count']);
 
             // Calculate age (days since flock's start_date)
-            $age = $flock->start_date->diffInDays(today()) ?? 0;
+            $age = $flock->start_date ? $flock->start_date->diffInDays(today()) : 0;
 
             // Calculate livability
             $livability = $flock->chicken_count > 0
