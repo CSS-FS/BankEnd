@@ -14,6 +14,7 @@ class ProductionLog extends Model
     protected $fillable = [
         'shed_id',
         'flock_id',
+        'production_log_date',
         'age',
         'day_mortality_count',
         'night_mortality_count',

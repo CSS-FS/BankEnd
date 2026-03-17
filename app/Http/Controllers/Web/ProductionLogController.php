@@ -132,7 +132,7 @@ class ProductionLogController extends Controller
         $net_count = $lastNetCount - ($validated['day_mortality_count'] + $validated['night_mortality_count']);
 
         // Calculate age (days since flock's start_date)
-        $age = $flock->start_date->diffInDays(today()) ?? 0;
+        $age = $flock->start_date ? $flock->start_date->diffInDays(today()) : 0;
 
         // Calculate livability
         $livability = $flock->chicken_count > 0
@@ -253,7 +253,7 @@ class ProductionLogController extends Controller
 
             $lastNetCount = $lastLog ? $lastLog->net_count : $flock->chicken_count;
             $net_count = $lastNetCount - ($validated['day_mortality_count'] + $validated['night_mortality_count']);
-            $age = $flock->start_date->diffInDays(today()) ?? 0;
+            $age = $flock->start_date ? $flock->start_date->diffInDays(today()) : 0;
             $livability = $flock->chicken_count > 0
                 ? daily_livability($net_count, $flock->chicken_count)
                 : 0;
