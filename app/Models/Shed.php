@@ -19,6 +19,11 @@ class Shed extends Model
 
     protected $fillable = ['farm_id', 'name', 'capacity', 'type', 'description'];
 
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['name'] = trim($value);
+    }
+
     public function farm(): BelongsTo
     {
         return $this->belongsTo(Farm::class);

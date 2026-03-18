@@ -6,6 +6,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Resources\ShedResource;
 use App\Models\Shed;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Services\DynamoDbService;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -59,11 +60,18 @@ class ShedController extends ApiController
     {
         $validated = $request->validate([
             'farm_id' => ['required', 'exists:farms,id'],
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('sheds')
+                    ->where('farm_id', $request->farm_id)
+                    ->where(fn ($q) => $q->whereRaw('LOWER(TRIM(name)) = ?', [strtolower(trim($request->name))])),
+            ],
             'capacity' => ['required', 'integer', 'min:1'],
             'type' => ['required', 'in:default,brooder,layer,broiler,hatchery'],
             'description' => ['nullable', 'string'],
             'device_id' => ['nullable', 'exists:devices,id'],
+        ], [
+            'name.unique' => 'Shed name must be unique within the selected farm.',
         ]);
 
         $shed = Shed::create($validated);
@@ -117,12 +125,22 @@ class ShedController extends ApiController
      */
     public function update(Request $request, Shed $shed)
     {
+        $farmId = $request->farm_id ?? $shed->farm_id;
+
         $validated = $request->validate([
             'farm_id' => ['sometimes', 'exists:farms,id'],
-            'name' => ['sometimes', 'string', 'max:255'],
+            'name' => [
+                'sometimes', 'string', 'max:255',
+                Rule::unique('sheds')
+                    ->where('farm_id', $farmId)
+                    ->where(fn ($q) => $q->whereRaw('LOWER(TRIM(name)) = ?', [strtolower(trim($request->name))]))
+                    ->ignore($shed->id),
+            ],
             'capacity' => ['sometimes', 'integer', 'min:1'],
             'type' => ['sometimes', 'in:default,brooder,layer,broiler,hatchery'],
             'description' => ['nullable', 'string'],
+        ], [
+            'name.unique' => 'Shed name must be unique within the selected farm.',
         ]);
 
         $shed->update($validated);
