@@ -7,6 +7,7 @@ use App\Models\Breed;
 use App\Models\Farm;
 use App\Models\Shed;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ShedController extends Controller
 {
@@ -82,31 +83,23 @@ class ShedController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('manager')) {
-            abort(403, 'Unauthorized action. Managers cannot create sheds.');
-        }
-
-        if ($user->hasRole('owner')) {
-            // Owner can create only one shed (across their farms)
-            $ownerShedCount = Shed::whereHas('farm', function ($q) use ($user) {
-                $q->where('owner_id', $user->id);
-            })->count();
-
-            if ($ownerShedCount >= 1) {
-                return redirect()
-                    ->back()
-                    ->with('error', 'You can only create one shed.');
-            }
-        } elseif (! $user->hasRole('admin')) {
+        if (! $user->hasRole('admin') && ! $user->hasRole('owner')) {
             abort(403, 'Unauthorized action.');
         }
 
         $validated = $request->validate([
             'farm_id' => 'required|exists:farms,id',
-            'name' => 'required|string|min:3|max:190',
+            'name' => [
+                'required', 'string', 'min:3', 'max:190',
+                Rule::unique('sheds')
+                    ->where('farm_id', $request->farm_id)
+                    ->where(fn ($q) => $q->whereRaw('LOWER(TRIM(name)) = ?', [strtolower(trim($request->name))])),
+            ],
             'capacity' => 'required|integer|min:1',
             'type' => 'required|string|in:'.implode(',', $this->types),
             'description' => 'nullable|string',
+        ], [
+            'name.unique' => 'Shed name must be unique within the selected farm.',
         ]);
 
         // Ownership guard for owners
@@ -147,11 +140,19 @@ class ShedController extends Controller
     public function update(Request $request, Shed $shed)
     {
         $validated = $request->validate([
-            'name' => 'required|string|min:3|max:190',
+            'name' => [
+                'required', 'string', 'min:3', 'max:190',
+                Rule::unique('sheds')
+                    ->where('farm_id', $request->farm_id)
+                    ->where(fn ($q) => $q->whereRaw('LOWER(TRIM(name)) = ?', [strtolower(trim($request->name))]))
+                    ->ignore($shed->id),
+            ],
             'farm_id' => 'required|exists:farms,id',
             'capacity' => 'required|integer|min:1',
             'type' => 'required|string|in:'.implode(',', $this->types),
             'description' => 'nullable|string',
+        ], [
+            'name.unique' => 'Shed name must be unique within the selected farm.',
         ]);
 
         $shed->update($validated);

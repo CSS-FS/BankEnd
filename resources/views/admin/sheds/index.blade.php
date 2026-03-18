@@ -184,7 +184,7 @@
                             <div class="col-lg-6 mb-3">
                                 <label for="name" class="form-label">Shed Name<span class="text-danger ms-1">*</span></label>
                                 <input type="text" class="form-control" id="name" name="name" required>
-                                <div class="invalid-feedback">Shed name is required.</div>
+                                <div class="invalid-feedback" id="add_name_feedback">Shed name is required.</div>
                             </div>
 
                             {{-- Farm --}}
@@ -256,7 +256,7 @@
                             <div class="col-lg-6 mb-3">
                                 <label for="edit_name" class="form-label">Shed Name <span class="text-danger ms-1">*</span></label>
                                 <input type="text" class="form-control" id="edit_name" name="name" required>
-                                <div class="invalid-feedback">Shed name is required.</div>
+                                <div class="invalid-feedback" id="edit_name_feedback">Shed name is required.</div>
                             </div>
 
                             {{-- Farm --}}
@@ -333,6 +333,19 @@
 @endsection
 
 @push('js')
+    <script>
+        // Existing sheds data for client-side uniqueness check
+        const existingShedsData = @json($sheds->map(fn($s) => ['id' => $s->id, 'farm_id' => $s->farm_id, 'name' => $s->name]));
+
+        function isDuplicateShedName(farmId, shedName, excludeShedId = null) {
+            const trimmedName = shedName.trim().toLowerCase();
+            return existingShedsData.some(s =>
+                String(s.farm_id) === String(farmId) &&
+                s.name.trim().toLowerCase() === trimmedName &&
+                (excludeShedId === null || String(s.id) !== String(excludeShedId))
+            );
+        }
+    </script>
     <script>
         $(function() {
             // Datatable
@@ -439,14 +452,34 @@
                 modal.show();
             });
 
-            // Optional client-side Bootstrap validation
+            // Client-side validation with uniqueness check
             form.addEventListener('submit', function (e) {
+                const editFarmId = farmEl.value;
+                const editName = nameEl.value;
+                const editShedId = idEl.value;
+                const feedbackEl = document.getElementById('edit_name_feedback');
+
+                if (editFarmId && editName.trim() && isDuplicateShedName(editFarmId, editName, editShedId)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    nameEl.classList.add('is-invalid');
+                    feedbackEl.textContent = 'Shed name must be unique within the selected farm.';
+                    return false;
+                }
+                nameEl.classList.remove('is-invalid');
+                feedbackEl.textContent = 'Shed name is required.';
+
                 if (!form.checkValidity()) {
                     e.preventDefault();
                     e.stopPropagation();
                 }
                 form.classList.add('was-validated');
-                // Default submit → PUT (via @method('PUT')) → page refresh with flash message
+            });
+
+            // Clear error on name/farm change in Edit modal
+            $(nameEl).add(farmEl).on('change input', function () {
+                nameEl.classList.remove('is-invalid');
+                document.getElementById('edit_name_feedback').textContent = 'Shed name is required.';
             });
         });
     </script>
@@ -478,6 +511,31 @@
             $('.basic-select').select2({
                 dropdownParent: $('#addShedModal'), // ensures it works inside Bootstrap modal
                 width: '100%'
+            });
+
+            // Add Shed form - uniqueness check before submit
+            $('#addShedModal form').on('submit', function (e) {
+                const nameInput = document.getElementById('name');
+                const farmId = document.getElementById('farm_id').value;
+                const feedbackEl = document.getElementById('add_name_feedback');
+
+                if (farmId && nameInput.value.trim() && isDuplicateShedName(farmId, nameInput.value)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    nameInput.classList.add('is-invalid');
+                    feedbackEl.textContent = 'Shed name must be unique within the selected farm.';
+                    return false;
+                }
+                nameInput.classList.remove('is-invalid');
+                feedbackEl.textContent = 'Shed name is required.';
+            });
+
+            // Clear error on name/farm change in Add modal
+            $('#name, #farm_id').on('change input', function () {
+                const nameInput = document.getElementById('name');
+                const feedbackEl = document.getElementById('add_name_feedback');
+                nameInput.classList.remove('is-invalid');
+                feedbackEl.textContent = 'Shed name is required.';
             });
         });
     </script>

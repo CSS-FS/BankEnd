@@ -109,8 +109,8 @@
                         {{-- Shed Name --}}
                         <div class="col-lg-6 mb-3">
                             <label for="name" class="form-label">Shed Name<span class="text-danger ms-1">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                            <div class="invalid-feedback">Shed name is required.</div>
+                            <input type="text" class="form-control" id="fc_shed_name" name="name" required>
+                            <div class="invalid-feedback" id="fc_shed_name_feedback">Shed name is required.</div>
                         </div>
 
                         {{-- Farm --}}
@@ -157,4 +157,38 @@
         </div>
     </div>
 </div>
+
+<script>
+    (function () {
+        const farmId = {{ $farm->id }};
+        const existingShedNames = @json($farm->sheds->pluck('name')->map(fn($n) => strtolower(trim($n))));
+
+        const form = document.querySelector('#addShedModal form');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            const nameInput = document.getElementById('fc_shed_name');
+            const feedbackEl = document.getElementById('fc_shed_name_feedback');
+            const trimmedName = nameInput.value.trim().toLowerCase();
+
+            if (trimmedName && existingShedNames.includes(trimmedName)) {
+                e.preventDefault();
+                e.stopPropagation();
+                nameInput.classList.add('is-invalid');
+                feedbackEl.textContent = 'Shed name must be unique within the selected farm.';
+                return false;
+            }
+            nameInput.classList.remove('is-invalid');
+            feedbackEl.textContent = 'Shed name is required.';
+        });
+
+        const nameInput = document.getElementById('fc_shed_name');
+        if (nameInput) {
+            nameInput.addEventListener('input', function () {
+                nameInput.classList.remove('is-invalid');
+                document.getElementById('fc_shed_name_feedback').textContent = 'Shed name is required.';
+            });
+        }
+    })();
+</script>
 

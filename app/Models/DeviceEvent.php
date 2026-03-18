@@ -32,22 +32,21 @@ class DeviceEvent extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        $data = json_decode($this->details, true);
-        $shed = Shed::with('farm')->find($data['shed_id']);
-
         return LogOptions::defaults()
-            ->useLogName('device_events') // goes into log_name
-            ->logOnly([
-                'device' => Device::find($this->device_id)->serial_no,
-                'event_type' => $this->event_type,
-                'severity' => $this->severity,
-                'Shed' => $shed?->name,
-                'Farm' => $shed?->farm->name,
-                'location' => $data['location'],
-                'occurred_at' => $this->occurred_at,
-            ])
+            ->useLogName('device_events')
+            ->logOnly(['device_id', 'event_type', 'severity', 'details', 'occurred_at'])
             ->logOnlyDirty()
-            ->setDescriptionForEvent(fn (string $eventName) => "Device Event {$this->name} was {$eventName} by ".optional(auth()->user())->name
-            );
+            ->setDescriptionForEvent(function (string $eventName) {
+                $data = is_array($this->details) ? $this->details : json_decode($this->details, true) ?? [];
+                $device = Device::find($this->device_id);
+                $shed = Shed::with('farm')->find($data['shed_id'] ?? null);
+
+                $desc = "Device Event [{$this->event_type}] ({$this->severity}) was {$eventName}";
+                if ($device) $desc .= " | Device: {$device->serial_no}";
+                if ($shed) $desc .= " | Shed: {$shed->name} | Farm: {$shed->farm?->name}";
+                $desc .= " by " . optional(auth()->user())->name;
+
+                return $desc;
+            });
     }
 }
