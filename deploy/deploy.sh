@@ -61,17 +61,21 @@ compose run --rm --user root "${PHP_SERVICE}" composer install \
     --no-interaction
 
 if [[ -f package.json ]]; then
-    log "Building frontend assets"
-    docker run --rm \
-        -v "${APP_DIR}:/app" \
-        -w /app \
-        node:22-alpine \
-        sh -lc "npm ci && npm run build"
+    if [[ -f public/build/manifest.json ]]; then
+        log "Using prebuilt frontend assets from deployment bundle"
+    else
+        log "Frontend assets missing; building on server"
+        docker run --rm \
+            -v "${APP_DIR}:/app" \
+            -w /app \
+            node:22-alpine \
+            sh -lc "rm -f public/hot && npm ci && npm run build"
+    fi
 fi
 
 log "Restarting application containers"
 compose down --remove-orphans
-compose up -d --build
+compose up -d
 
 log "Running database migrations"
 compose exec -T "${PHP_SERVICE}" php artisan migrate --force
@@ -83,7 +87,16 @@ compose exec -T "${PHP_SERVICE}" php artisan config:cache
 compose exec -T "${PHP_SERVICE}" php artisan route:cache
 compose exec -T "${PHP_SERVICE}" php artisan view:cache
 
-log "Running post-deploy health check"
-compose exec -T nginx wget -q -O /dev/null http://127.0.0.1/api/health
+log "Running nginx health check"
+if ! compose exec -T nginx wget -q -O /dev/null http://127.0.0.1/nginx-health; then
+    printf 'Nginx health check failed: /nginx-health did not return success.\n' >&2
+    exit 1
+fi
+
+log "Running application health check"
+if ! compose exec -T nginx wget -q -O /dev/null http://127.0.0.1/api/health; then
+    printf 'Application health check failed: /api/health did not return success.\n' >&2
+    exit 1
+fi
 
 log "Deployment completed successfully"

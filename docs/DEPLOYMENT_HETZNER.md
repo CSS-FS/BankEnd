@@ -19,7 +19,7 @@ mkdir -p /var/www/flocksense-backend
 docker network create appnet
 ```
 
-Create the production environment file content for GitHub Actions as the `ENV_PRODUCTION_CONTENT` repository secret. The workflow will write it to `/var/www/flocksense-backend/.env` on each deploy. At minimum:
+Create the production environment file content for GitHub Actions as the `ENV_PRODUCTION_VALUES` repository secret. The workflow will write it to `/var/www/flocksense-backend/.env` on each deploy. At minimum:
 
 ```dotenv
 APP_NAME=FlockSense
@@ -99,7 +99,7 @@ The GitHub Actions workflow is in [`deploy.yml`](/Users/techling/Code/Personal/f
 
 Required secrets:
 
-- `ENV_PRODUCTION_CONTENT`
+- `ENV_PRODUCTION_VALUES`
 - `SERVER_HOST`
 - `SERVER_USER`
 - `SERVER_SSH_KEY`
@@ -107,11 +107,12 @@ Required secrets:
 
 Workflow behavior:
 
+- builds frontend assets in GitHub Actions
 - copies the repository to `/var/www/flocksense-backend`
-- writes `/var/www/flocksense-backend/.env` from `ENV_PRODUCTION_CONTENT`
+- writes `/var/www/flocksense-backend/.env` from `ENV_PRODUCTION_VALUES`
 - runs the remote deploy script
 - installs Composer dependencies
-- builds Vite assets
+- uses the prebuilt frontend bundle and falls back to server-side asset build only if needed
 - rebuilds and restarts containers
 - runs migrations with `--force`
 - refreshes Laravel caches
@@ -126,3 +127,9 @@ Workflow behavior:
 - storage path writability and disk usage
 
 Use it for uptime checks and post-deploy verification.
+
+With the current production Compose mapping, access points are:
+
+- Admin login: `http://your-server-domain-or-ip:8000/login`
+- Admin dashboard: `http://your-server-domain-or-ip:8000/admin/dashboard`
+- Health check: `http://your-server-domain-or-ip:8000/api/health`

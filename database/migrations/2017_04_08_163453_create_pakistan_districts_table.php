@@ -16,7 +16,7 @@ class CreatePakistanDistrictsTable extends Migration {
 		{
 			$table->bigIncrements('id')->comment('Auto increase ID');
             $table->bigInteger('province_id')->unsigned()->comment('Province ID');
-            $table->bigInteger('division_id')->unsigned()->comment('Division ID');
+            $table->bigInteger('division_id')->unsigned()->nullable()->comment('Division ID');
 			$table->string('name', 190)->default('')->comment('District Common Name');
 			$table->string('center', 190)->nullable()->comment('Center City Common Name');
 			$table->string('population', 190)->nullable()->comment('Census (2017-03-15)');

@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -13,21 +17,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
       - name: Validate deploy secrets
         env:
-          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
+          ENV_PRODUCTION_VALUES: ${{ secrets.ENV_PRODUCTION_VALUES }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_PORT: ${{ secrets.SERVER_PORT }}
           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
-          test -n "$ENV_PRODUCTION_CONTENT" || { echo "ENV_PRODUCTION_CONTENT is empty"; exit 1; }
+          test -n "$ENV_PRODUCTION_VALUES" || { echo "ENV_PRODUCTION_VALUES is empty"; exit 1; }
           test -n "$SERVER_HOST" || { echo "SERVER_HOST is empty"; exit 1; }
           test -n "$SERVER_USER" || { echo "SERVER_USER is empty"; exit 1; }
           test -n "$SERVER_PORT" || { echo "SERVER_PORT is empty"; exit 1; }
           test -n "$SERVER_SSH_KEY" || { echo "SERVER_SSH_KEY is empty"; exit 1; }
 
-          echo "ENV_PRODUCTION_CONTENT is set"
+          echo "ENV_PRODUCTION_VALUES is set"
           echo "SERVER_HOST is set"
           echo "SERVER_USER is set"
           echo "SERVER_PORT is set"
@@ -38,10 +49,16 @@ jobs:
 
       - name: Prepare production environment file
         env:
-          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
+          ENV_PRODUCTION_VALUES: ${{ secrets.ENV_PRODUCTION_VALUES }}
         run: |
           umask 177
-          printf '%s' "$ENV_PRODUCTION_CONTENT" > .env
+          printf '%s' "$ENV_PRODUCTION_VALUES" > .env
+
+      - name: Build frontend assets
+        run: |
+          rm -f public/hot
+          npm ci
+          npm run build
 
       - name: Check host resolution
         env:

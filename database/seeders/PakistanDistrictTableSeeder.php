@@ -586,7 +586,7 @@ class PakistanDistrictTableSeeder extends Seeder
                 array(
                     'id' => 40,
                     'province_id' => 2,
-                    'division_id' => 0,
+                    'division_id' => null,
                     'name' => 'Islamabad',
                     'center' => 'Islamabad',
                     'population' => 2001579,
