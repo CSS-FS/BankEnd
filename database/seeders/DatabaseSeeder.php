@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             BreedSeeder::class,
+            BreedPerformanceStandardSeeder::class,
             FeedSeeder::class,
             FarmSeeder::class,
             ShedSeeder::class,

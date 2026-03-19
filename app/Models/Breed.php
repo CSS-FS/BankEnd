@@ -18,6 +18,11 @@ class Breed extends Model
         return $this->hasMany(Flock::class);
     }
 
+    public function performanceStandards(): HasMany
+    {
+        return $this->hasMany(BreedPerformanceStandard::class);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
